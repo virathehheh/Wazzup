@@ -1,0 +1,60 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+
+import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    updateProfile
+} from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCmeHA37L-kwgt6FnrpqrXHvM7IjvsNVRs",
+    authDomain: "wazzup-0021.firebaseapp.com",
+    projectId: "wazzup-0021",
+    storageBucket: "wazzup-0021.firebasestorage.app",
+    messagingSenderId: "960018982217",
+    appId: "1:960018982217:web:1a196e52060b2140a2e698"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const signupButton = document.querySelector(".login-box button");
+const inputs = document.querySelectorAll(".login-box input");
+
+if (signupButton && inputs.length === 5) {
+    signupButton.addEventListener("click", async function() {
+
+        const name = inputs[0].value.trim();
+        const email = inputs[2].value.trim();
+        const password = inputs[3].value;
+        const confirmPassword = inputs[4].value;
+
+        if (!name || !inputs[1].value.trim() || !email || !password || !confirmPassword) {
+            alert("Please fill all fields!");
+            return;
+        }
+
+        if (password.length < 6) {
+            alert("Password must be at least 6 characters!");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+
+        try {
+            const result = await createUserWithEmailAndPassword(auth, email, password);
+
+            await updateProfile(result.user, {
+                displayName: name
+            });
+
+            alert("Wazzup Account Created Successfully!");
+
+        } catch (error) {
+            alert(error.message);
+        }
+    });
+}
