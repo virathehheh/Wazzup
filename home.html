@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,40 +15,23 @@
     </header>
 
     <div class="search-box">
-        <input type="text" placeholder="Search people or chats...">
+        <input
+            type="text"
+            id="userSearch"
+            placeholder="Search people or username..."
+        >
     </div>
 
     <section class="welcome">
         <h2>Welcome to Wazzup!</h2>
-        <p>Start a conversation today.</p>
+        <p>Connect with people and start chatting.</p>
     </section>
 
     <section class="chat-section">
-        <h3>Recent Conversations</h3>
+        <h3>People on Wazzup</h3>
 
-        <div class="chat-item">
-            <div class="avatar">A</div>
-            <div class="chat-info">
-                <h4>Alex</h4>
-                <p>Hey! What's up?</p>
-            </div>
-            <span class="online-dot"></span>
-        </div>
-
-        <div class="chat-item">
-            <div class="avatar">R</div>
-            <div class="chat-info">
-                <h4>Rahul</h4>
-                <p>See you tomorrow!</p>
-            </div>
-        </div>
-
-        <div class="chat-item">
-            <div class="avatar">S</div>
-            <div class="chat-info">
-                <h4>Sarah</h4>
-                <p>That's awesome!</p>
-            </div>
+        <div id="usersList">
+            <p>Loading users...</p>
         </div>
     </section>
 
@@ -56,6 +40,8 @@
         <a href="#">Chats</a>
         <a href="#">Profile</a>
     </nav>
+
+    <script type="module" src="home.js"></script>
 
 </body>
 </html>
