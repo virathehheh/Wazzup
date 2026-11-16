@@ -84,6 +84,7 @@ if (signupButton && inputs.length === 2) {
             await signInWithEmailAndPassword(auth, email, password);
 
             alert("Login Successful! Welcome to Wazzup.");
+            window.location.href = "home.html";
 
         } catch (error) {
             alert(error.message);
