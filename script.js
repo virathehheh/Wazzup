@@ -9,6 +9,13 @@ import {
     signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
 
+import {
+    getFirestore,
+    doc,
+    setDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
+
 // FIREBASE CONFIGURATION
 const firebaseConfig = {
     apiKey: "AIzaSyCmeHA37L-kwgt6FnrpqrXHvM7IjvsNVRs",
@@ -22,9 +29,13 @@ const firebaseConfig = {
 // INITIALIZE FIREBASE
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 // BUTTON AND INPUTS
-const signupButton = document.getElementById("loginButton") || document.querySelector(".login-box button");
+const signupButton =
+    document.getElementById("loginButton") ||
+    document.querySelector(".login-box button");
+
 const inputs = document.querySelectorAll(".login-box input");
 
 // SIGNUP SYSTEM
@@ -54,6 +65,7 @@ if (signupButton && inputs.length === 5) {
         }
 
         try {
+
             const result = await createUserWithEmailAndPassword(
                 auth,
                 email,
@@ -62,6 +74,15 @@ if (signupButton && inputs.length === 5) {
 
             await updateProfile(result.user, {
                 displayName: name
+            });
+
+            // SAVE USER DATA IN FIRESTORE
+            await setDoc(doc(db, "users", result.user.uid), {
+                uid: result.user.uid,
+                name: name,
+                username: username,
+                email: email,
+                createdAt: serverTimestamp()
             });
 
             alert("Wazzup Account Created Successfully!");
@@ -88,6 +109,7 @@ if (signupButton && inputs.length === 2) {
         }
 
         try {
+
             await signInWithEmailAndPassword(
                 auth,
                 email,
@@ -120,6 +142,7 @@ if (forgotPassword) {
         }
 
         try {
+
             await sendPasswordResetEmail(auth, email.trim());
 
             alert("Password reset link sent! Please check your email.");
