@@ -9,6 +9,7 @@ import {
     signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
 
+// FIREBASE CONFIGURATION
 const firebaseConfig = {
     apiKey: "AIzaSyCmeHA37L-kwgt6FnrpqrXHvM7IjvsNVRs",
     authDomain: "wazzup-0021.firebaseapp.com",
@@ -18,16 +19,18 @@ const firebaseConfig = {
     appId: "1:960018982217:web:1a196e52060b2140a2e698"
 };
 
+// INITIALIZE FIREBASE
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// SIGNUP SYSTEM
-const signupButton = document.querySelector(".login-box button");
+// BUTTON AND INPUTS
+const signupButton = document.getElementById("loginButton") || document.querySelector(".login-box button");
 const inputs = document.querySelectorAll(".login-box input");
 
+// SIGNUP SYSTEM
 if (signupButton && inputs.length === 5) {
 
-    signupButton.addEventListener("click", async function() {
+    signupButton.addEventListener("click", async function () {
 
         const name = inputs[0].value.trim();
         const username = inputs[1].value.trim();
@@ -52,7 +55,9 @@ if (signupButton && inputs.length === 5) {
 
         try {
             const result = await createUserWithEmailAndPassword(
-                auth, email, password
+                auth,
+                email,
+                password
             );
 
             await updateProfile(result.user, {
@@ -60,6 +65,8 @@ if (signupButton && inputs.length === 5) {
             });
 
             alert("Wazzup Account Created Successfully!");
+
+            window.location.href = "index.html";
 
         } catch (error) {
             alert(error.message);
@@ -70,7 +77,7 @@ if (signupButton && inputs.length === 5) {
 // LOGIN SYSTEM
 if (signupButton && inputs.length === 2) {
 
-    signupButton.addEventListener("click", async function() {
+    signupButton.addEventListener("click", async function () {
 
         const email = inputs[0].value.trim();
         const password = inputs[1].value;
@@ -81,10 +88,15 @@ if (signupButton && inputs.length === 2) {
         }
 
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            await signInWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
 
             alert("Login Successful! Welcome to Wazzup.");
-            window.location.href = "home.html";
+
+            window.location.assign("./home.html");
 
         } catch (error) {
             alert(error.message);
@@ -97,13 +109,15 @@ const forgotPassword = document.getElementById("forgotPassword");
 
 if (forgotPassword) {
 
-    forgotPassword.addEventListener("click", async function(event) {
+    forgotPassword.addEventListener("click", async function (event) {
 
         event.preventDefault();
 
         const email = prompt("Enter your registered email address:");
 
-        if (!email) return;
+        if (!email) {
+            return;
+        }
 
         try {
             await sendPasswordResetEmail(auth, email.trim());
