@@ -1,0 +1,46 @@
+body {
+    background-color: #08120D;
+    color: white;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    padding-top: 40px;
+}
+
+h1 {
+    color: #20E878;
+    font-size: 45px;
+}
+
+p {
+    color: #AAAAAA;
+}
+
+.login-box {
+    background-color: #12251B;
+    width: 80%;
+    max-width: 350px;
+    margin: 30px auto;
+    padding: 25px;
+    border-radius: 15px;
+}
+
+input {
+    width: 90%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #20E878;
+    color: black;
+    width: 90%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+}
