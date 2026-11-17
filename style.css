@@ -293,3 +293,19 @@ button {
     font-size: 10px;
     color: #b7c9bb;
 }
+/* FIX USER CLICK */
+.chat-item {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+    text-decoration: none;
+}
+
+.chat-item * {
+    pointer-events: none;
+}
