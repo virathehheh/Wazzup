@@ -30,7 +30,6 @@ const firebaseConfig = {
     appId: "1:960018982217:web:1a196e52060b2140a2e698"
 };
 
-// INITIALIZE FIREBASE
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -46,12 +45,22 @@ let currentUser = null;
 let chatId = null;
 let unsubscribeMessages = null;
 
-// TIME FORMAT
-function formatTime(timestamp) {
-    if (!timestamp) return "just now";
+const messageElements = new Map();
+const readRequests = new Set();
 
-    const seconds = Math.floor(
-        (Date.now() - timestamp.toDate().getTime()) / 1000
+// TIME FORMAT
+function formatTime(value) {
+    if (!value) return "just now";
+
+    const date = value.toDate
+        ? value.toDate()
+        : new Date(value);
+
+    if (isNaN(date.getTime())) return "just now";
+
+    const seconds = Math.max(
+        0,
+        Math.floor((Date.now() - date.getTime()) / 1000)
     );
 
     if (seconds < 60) return "just now";
@@ -59,95 +68,161 @@ function formatTime(timestamp) {
     const minutes = Math.floor(seconds / 60);
 
     if (minutes < 60) {
-        return minutes + (minutes === 1 ? " minute ago" : " minutes ago");
+        return minutes +
+            (minutes === 1 ? " minute ago" : " minutes ago");
     }
 
     const hours = Math.floor(minutes / 60);
 
     if (hours < 24) {
-        return hours + (hours === 1 ? " hour ago" : " hours ago");
+        return hours +
+            (hours === 1 ? " hour ago" : " hours ago");
     }
 
     const days = Math.floor(hours / 24);
 
-    return days + (days === 1 ? " day ago" : " days ago");
+    return days +
+        (days === 1 ? " day ago" : " days ago");
+}
+
+// CREATE MESSAGE ELEMENT
+function createMessageElement(message, id) {
+    const isMine = message.senderId === currentUser.uid;
+
+    const bubble = document.createElement("div");
+    bubble.className = isMine
+        ? "message-bubble sent"
+        : "message-bubble received";
+
+    const text = document.createElement("p");
+    text.className = "message-text";
+    text.textContent = message.text || "";
+
+    const status = document.createElement("small");
+    status.className = "message-status";
+
+    bubble.appendChild(text);
+    bubble.appendChild(status);
+
+    messageElements.set(id, {
+        bubble,
+        text,
+        status
+    });
+
+    return bubble;
+}
+
+// UPDATE MESSAGE
+function updateMessageElement(message, id) {
+    let elements = messageElements.get(id);
+
+    if (!elements) {
+        createMessageElement(message, id);
+        elements = messageElements.get(id);
+    }
+
+    const sentAt = message.sentAt || null;
+    const readAt = message.readAt || null;
+
+    elements.text.textContent = message.text || "";
+
+    elements.status.dataset.sentAt = sentAt
+        ? sentAt.toMillis()
+        : "";
+
+    elements.status.dataset.readAt = readAt
+        ? readAt.toMillis()
+        : "";
+
+    const isMine = message.senderId === currentUser.uid;
+
+    if (isMine) {
+        elements.status.textContent = readAt
+            ? "Seen " + formatTime(readAt)
+            : "Sent " + formatTime(sentAt);
+    } else {
+        elements.status.textContent = formatTime(sentAt);
+    }
 }
 
 // DISPLAY MESSAGES
 function displayMessages(snapshot) {
-
-    messagesArea.innerHTML = "";
+    const wasNearBottom =
+        messagesArea.scrollHeight -
+        messagesArea.scrollTop -
+        messagesArea.clientHeight < 100;
 
     if (snapshot.empty) {
         messagesArea.innerHTML =
             '<div class="empty-chat"><h3>Start a Conversation!</h3><p>Say hello to your friend.</p></div>';
+
+        messageElements.clear();
         return;
     }
 
+    const currentIds = new Set();
+
+    messagesArea.querySelector(".empty-chat")?.remove();
+
     snapshot.forEach(messageDoc => {
+        const id = messageDoc.id;
 
-        const message = messageDoc.data();
+        // Estimate server timestamps while pending
+        const message = messageDoc.data({
+            serverTimestamps: "estimate"
+        });
 
-        const isMine = message.senderId === currentUser.uid;
+        currentIds.add(id);
 
-        const bubble = document.createElement("div");
-        bubble.className = isMine ? "message-bubble sent" : "message-bubble received";
+        updateMessageElement(message, id);
 
-        const text = document.createElement("p");
-        text.className = "message-text";
-        text.textContent = message.text || "";
+        const elements = messageElements.get(id);
 
-        const status = document.createElement("small");
-        status.className = "message-status";
-        status.dataset.sentAt = message.sentAt
-            ? message.sentAt.toMillis()
-            : "";
-
-        status.dataset.readAt = message.readAt
-            ? message.readAt.toMillis()
-            : "";
-
-        if (isMine) {
-            status.textContent = message.readAt
-                ? "Seen " + formatTime(message.readAt)
-                : "Sent " + formatTime(message.sentAt);
-        } else {
-            status.textContent = formatTime(message.sentAt);
+        if (elements.bubble.parentElement !== messagesArea) {
+            messagesArea.appendChild(elements.bubble);
         }
 
-        bubble.appendChild(text);
-        bubble.appendChild(status);
-
-        messagesArea.appendChild(bubble);
-    });
-
-    messagesArea.scrollTop = messagesArea.scrollHeight;
-
-    // MARK RECEIVED MESSAGES AS READ
-    snapshot.forEach(async messageDoc => {
-
-        const message = messageDoc.data();
-
+        // MARK RECEIVED MESSAGE AS READ
         if (
             message.senderId !== currentUser.uid &&
-            !message.readAt
+            !message.readAt &&
+            !readRequests.has(id)
         ) {
-            try {
-                await updateDoc(
-                    doc(db, "chats", chatId, "messages", messageDoc.id),
-                    { readAt: serverTimestamp() }
-                );
-            } catch (error) {
+            readRequests.add(id);
+
+            updateDoc(
+                doc(db, "chats", chatId, "messages", id),
+                { readAt: serverTimestamp() }
+            ).catch(error => {
                 console.log("Read receipt error:", error.message);
-            }
+                readRequests.delete(id);
+            });
         }
     });
+
+    // Remove messages no longer in snapshot
+    for (const [id, elements] of messageElements) {
+        if (!currentIds.has(id)) {
+            elements.bubble.remove();
+            messageElements.delete(id);
+            readRequests.delete(id);
+        }
+    }
+
+    if (wasNearBottom) {
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
 }
 
-// LIVE MESSAGE LISTENER
+// START CHAT LISTENER
 function startChat() {
-
-    const messagesRef = collection(db, "chats", chatId, "messages");
+    const messagesRef = collection(
+        db,
+        "chats",
+        chatId,
+        "messages"
+    );
 
     const messagesQuery = query(
         messagesRef,
@@ -156,16 +231,17 @@ function startChat() {
 
     unsubscribeMessages = onSnapshot(
         messagesQuery,
+        { includeMetadataChanges: true },
         displayMessages,
         error => {
-            messagesArea.textContent = "Chat error: " + error.message;
+            messagesArea.textContent =
+                "Chat error: " + error.message;
         }
     );
 }
 
 // SEND MESSAGE
 sendButton.addEventListener("click", async function () {
-
     const messageText = messageInput.value.trim();
 
     if (!messageText || !currentUser || !chatId) return;
@@ -173,7 +249,6 @@ sendButton.addEventListener("click", async function () {
     sendButton.disabled = true;
 
     try {
-
         await addDoc(
             collection(db, "chats", chatId, "messages"),
             {
@@ -196,42 +271,36 @@ sendButton.addEventListener("click", async function () {
 // SEND WITH ENTER
 messageInput.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
+        event.preventDefault();
         sendButton.click();
     }
 });
 
-// UPDATE TIME LABELS
+// LIVE TIME UPDATE
 setInterval(() => {
-
     document.querySelectorAll(".message-status").forEach(status => {
-
         const sentAt = Number(status.dataset.sentAt);
         const readAt = Number(status.dataset.readAt);
 
         if (readAt) {
-            status.textContent = "Seen " + formatTime({
-                toDate: () => new Date(readAt)
-            });
+            status.textContent =
+                "Seen " + formatTime(readAt);
+
         } else if (sentAt) {
             const bubble = status.closest(".message-bubble");
 
-            if (bubble && bubble.classList.contains("sent")) {
-                status.textContent = "Sent " + formatTime({
-                    toDate: () => new Date(sentAt)
-                });
+            if (bubble?.classList.contains("sent")) {
+                status.textContent =
+                    "Sent " + formatTime(sentAt);
             } else {
-                status.textContent = formatTime({
-                    toDate: () => new Date(sentAt)
-                });
+                status.textContent = formatTime(sentAt);
             }
         }
     });
-
-}, 15000);
+}, 5000);
 
 // LOGIN AND CHAT SETUP
 onAuthStateChanged(auth, async user => {
-
     if (!user) {
         window.location.href = "index.html";
         return;
@@ -245,11 +314,15 @@ onAuthStateChanged(auth, async user => {
         return;
     }
 
-    chatId = [currentUser.uid, recipientUid].sort().join("_");
+    // SAME CHAT ID FOR BOTH USERS
+    chatId = [currentUser.uid, recipientUid]
+        .sort()
+        .join("_");
 
     try {
-
-        const userDoc = await getDoc(doc(db, "users", recipientUid));
+        const userDoc = await getDoc(
+            doc(db, "users", recipientUid)
+        );
 
         if (!userDoc.exists()) {
             alert("User not found!");
@@ -265,14 +338,18 @@ onAuthStateChanged(auth, async user => {
         document.querySelector(".chat-avatar").textContent =
             (data.name || "U").charAt(0).toUpperCase();
 
-        document.getElementById("chatStatus").textContent = "Wazzup";
+        document.getElementById("chatStatus").textContent =
+            "Wazzup";
 
         const chatRef = doc(db, "chats", chatId);
         const chatDoc = await getDoc(chatRef);
 
         if (!chatDoc.exists()) {
             await setDoc(chatRef, {
-                participants: [currentUser.uid, recipientUid],
+                participants: [
+                    currentUser.uid,
+                    recipientUid
+                ],
                 createdAt: serverTimestamp()
             });
         }
@@ -284,6 +361,7 @@ onAuthStateChanged(auth, async user => {
         startChat();
 
     } catch (error) {
-        messagesArea.textContent = "Error: " + error.message;
+        messagesArea.textContent =
+            "Error: " + error.message;
     }
 });
