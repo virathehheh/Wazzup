@@ -309,3 +309,47 @@ button {
 .chat-item * {
     pointer-events: none;
 }
+
+/* MOBILE CHAT SCREEN FIX */
+
+.chat-page {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.chat-header {
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.messages-area {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    overflow-y: auto;
+}
+
+.message-footer {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    width: 100%;
+    min-height: 80px;
+    height: 80px;
+    padding: 10px;
+}
+
+.message-footer input {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+}
+
+.message-footer button {
+    flex-shrink: 0;
+    width: auto;
+}
