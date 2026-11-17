@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wazzup Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="chat-page">
+
+    <header class="chat-header">
+        <a href="home.html" class="back-button">←</a>
+
+        <div class="chat-avatar">U</div>
+
+        <div class="chat-user-info">
+            <h3 id="chatName">Wazzup User</h3>
+            <p id="chatStatus">Connecting...</p>
+        </div>
+    </header>
+
+    <main class="messages-area" id="messagesArea">
+        <div class="empty-chat">
+            <h3>Start a Conversation!</h3>
+            <p>Say hello to your friend.</p>
+        </div>
+    </main>
+
+    <footer class="message-footer">
+        <input
+            type="text"
+            id="messageInput"
+            placeholder="Type a message..."
+        >
+
+        <button id="sendButton">Send</button>
+    </footer>
+
+    <script type="module" src="chat.js"></script>
+
+</body>
+</html>
