@@ -32,13 +32,107 @@ const userSearch = document.getElementById("userSearch");
 
 let allUsers = [];
 
+// CREATE PHOTO VIEWER
+const photoViewer = document.createElement("div");
+
+photoViewer.style.cssText = `
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.94);
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+`;
+
+const bigPhoto = document.createElement("img");
+
+bigPhoto.style.cssText = `
+    max-width: 95%;
+    max-height: 85%;
+    object-fit: contain;
+    border-radius: 8px;
+`;
+
+const closePhoto = document.createElement("button");
+
+closePhoto.textContent = "✕";
+
+closePhoto.style.cssText = `
+    position: absolute;
+    top: 20px;
+    right: 22px;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+`;
+
+photoViewer.appendChild(bigPhoto);
+photoViewer.appendChild(closePhoto);
+document.body.appendChild(photoViewer);
+
+// OPEN PHOTO
+function openPhoto(photoURL) {
+    bigPhoto.src = photoURL;
+    photoViewer.style.display = "flex";
+    document.body.style.overflow = "hidden";
+}
+
+// CLOSE PHOTO
+function hidePhoto() {
+    photoViewer.style.display = "none";
+    bigPhoto.src = "";
+    document.body.style.overflow = "";
+}
+
+closePhoto.addEventListener("click", hidePhoto);
+
+photoViewer.addEventListener("click", (event) => {
+    if (event.target === photoViewer) {
+        hidePhoto();
+    }
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+        hidePhoto();
+    }
+});
+
 // CREATE USER AVATAR
-function createAvatar(name) {
+function createAvatar(user) {
     const avatar = document.createElement("div");
     avatar.className = "avatar";
 
-    const firstLetter = (name || "U").trim().charAt(0);
-    avatar.textContent = firstLetter.toUpperCase();
+    if (user.photoURL) {
+        const image = document.createElement("img");
+
+        image.src = user.photoURL;
+        image.alt = (user.name || "User") + " profile photo";
+
+        image.style.width = "100%";
+        image.style.height = "100%";
+        image.style.objectFit = "cover";
+        image.style.borderRadius = "50%";
+
+        avatar.appendChild(image);
+
+        avatar.style.cursor = "pointer";
+
+        avatar.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            openPhoto(user.photoURL);
+        });
+
+    } else {
+        const firstLetter = (user.name || "U").trim().charAt(0);
+        avatar.textContent = firstLetter.toUpperCase();
+    }
 
     return avatar;
 }
@@ -64,7 +158,7 @@ function displayUsers(users) {
         item.href = "chat.html?uid=" + encodeURIComponent(user.uid);
 
         // AVATAR
-        const avatar = createAvatar(user.name);
+        const avatar = createAvatar(user);
 
         // USER INFORMATION
         const info = document.createElement("div");
