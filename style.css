@@ -1,5 +1,7 @@
 
-/* GENERAL DESIGN */
+/* =====================================
+   GENERAL DESIGN
+===================================== */
 
 body {
     background-color: #08120D;
@@ -56,7 +58,9 @@ button {
     object-fit: contain;
 }
 
-/* WAZZUP HOME PAGE */
+/* =====================================
+   OLD HOME DESIGN
+===================================== */
 
 .home-header {
     background: #111;
@@ -165,7 +169,9 @@ button {
     font-weight: bold;
 }
 
-/* WAZZUP CHAT DESIGN */
+/* =====================================
+   WAZZUP CHAT DESIGN
+===================================== */
 
 .chat-page {
     margin: 0;
@@ -328,7 +334,7 @@ button {
     padding-bottom: calc(10px + env(safe-area-inset-bottom));
 }
 
-/* INSTAGRAM STYLE MESSAGE BUBBLES */
+/* MESSAGE BUBBLES */
 
 .messages-area .message {
     display: flex !important;
@@ -345,7 +351,7 @@ button {
     text-align: left !important;
 }
 
-/* MY MESSAGES - SKY BLUE */
+/* SENT MESSAGE */
 
 .messages-area .message.sent {
     align-self: flex-end !important;
@@ -356,7 +362,7 @@ button {
     border-bottom-right-radius: 5px;
 }
 
-/* FRIEND MESSAGES - DARK GREY */
+/* RECEIVED MESSAGE */
 
 .messages-area .message.received {
     align-self: flex-start !important;
@@ -378,6 +384,16 @@ button {
     text-align: left !important;
 }
 
+.messages-area .message.sent p {
+    color: #071827 !important;
+    font-weight: bold;
+}
+
+.messages-area .message.received p {
+    color: #ffffff !important;
+    font-weight: bold;
+}
+
 /* MESSAGE STATUS */
 
 .messages-area .message .message-status {
@@ -388,24 +404,333 @@ button {
     color: inherit !important;
     opacity: 0.75;
     text-align: right;
-}
-
-/* CLEAR MESSAGE TEXT COLORS */
-
-/* My message text */
-.messages-area .message.sent p {
-    color: #071827 !important;
     font-weight: bold;
 }
 
-/* Friend message text */
-.messages-area .message.received p {
-    color: #ffffff !important;
+/* =====================================
+   PREMIUM WAZZUP HOME DESIGN
+===================================== */
+
+body.wazzup-home {
+    margin: 0;
+    padding: 0 0 100px;
+    min-height: 100vh;
+    background: #202a35;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.wazzup-home * {
+    box-sizing: border-box;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 600px;
+    min-height: 100vh;
+    margin: auto;
+    padding-bottom: 90px;
+    background: #202a35;
+}
+
+/* TOP HEADER */
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 22px;
+}
+
+.brand {
+    color: white;
+    font-size: 29px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-decoration: none;
+}
+
+.brand span {
+    color: #20e878;
+}
+
+.top-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.icon-btn {
+    width: 42px;
+    height: 42px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: #2c3946;
+    color: white;
+    font-size: 24px;
+    border: 1px solid #3b4a58;
+}
+
+/* STORIES */
+
+.stories-section {
+    padding: 10px 22px 25px;
+}
+
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.section-heading h2 {
+    margin: 0;
+    font-size: 19px;
+    color: white;
+}
+
+.coming-soon {
+    color: #20e878;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.stories-list {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 5px 0 10px;
+    scrollbar-width: none;
+}
+
+.stories-list::-webkit-scrollbar {
+    display: none;
+}
+
+.story-item {
+    min-width: 65px;
+    text-align: center;
+}
+
+.story-avatar {
+    width: 65px;
+    height: 65px;
+    margin: auto;
+    border-radius: 50%;
+    border: 3px solid #20e878;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #354453;
+    color: white;
+    font-size: 23px;
     font-weight: bold;
 }
 
-/* Message time/status */
-.messages-area .message .message-status {
-    color: inherit !important;
+.story-item p {
+    margin: 8px 0 0;
+    color: #c5cdd5;
+    font-size: 12px;
+}
+
+.my-story {
+    border: 2px dashed #20e878;
+    color: #20e878;
+    font-size: 32px;
+}
+
+.story-one {
+    background: linear-gradient(135deg, #263f50, #426b70);
+}
+
+.story-two {
+    background: linear-gradient(135deg, #40345f, #7954a8);
+}
+
+.story-three {
+    background: linear-gradient(135deg, #735039, #b17b42);
+}
+
+/* SEARCH */
+
+.search-section {
+    padding: 5px 22px 25px;
+}
+
+.wazzup-home .search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    height: 52px;
+    border-radius: 16px;
+    background: #2c3946;
+    border: 1px solid #3a4957;
+}
+
+.search-icon {
+    color: #20e878;
+    font-size: 25px;
+}
+
+.wazzup-home .search-box input {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 14px;
+}
+
+.wazzup-home .search-box input::placeholder {
+    color: #9ba8b5;
+}
+
+/* CHAT LIST */
+
+.wazzup-home .chat-section {
+    padding: 5px 22px 20px;
+}
+
+.wazzup-home .chat-section .section-heading {
+    margin-bottom: 12px;
+}
+
+.chat-subtitle {
+    color: #20e878;
+    font-size: 12px;
+}
+
+#usersList {
+    display: flex;
+    flex-direction: column;
+}
+
+.wazzup-home #usersList .chat-item {
+    display: flex !important;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    min-height: 82px;
+    padding: 12px 5px;
+    border-bottom: 1px solid #35424e;
+    text-decoration: none;
+    color: white;
+    background: transparent;
+    cursor: pointer;
+}
+
+.wazzup-home #usersList .avatar {
+    width: 54px;
+    height: 54px;
+    min-width: 54px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #20e878, #087d54);
+    color: #09251a;
+    font-size: 21px;
     font-weight: bold;
+}
+
+.wazzup-home #usersList .chat-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.wazzup-home #usersList .chat-info h4 {
+    margin: 0 0 7px;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.wazzup-home #usersList .chat-info p {
+    margin: 0;
+    color: #aab6c1;
+    font-size: 12px;
+}
+
+.chat-arrow {
+    color: #20e878;
+    font-size: 28px;
+    padding: 0 8px;
+}
+
+.empty-users {
+    padding: 20px 5px;
+    color: #aab6c1;
+    text-align: center;
+}
+
+/* BOTTOM NAVIGATION */
+
+.wazzup-home .bottom-nav {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 600px;
+    height: 75px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    background: #17212b;
+    border-top: 1px solid #35424e;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+}
+
+.wazzup-home .bottom-nav .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 33.33%;
+    color: #98a6b3;
+    text-decoration: none;
+    font-weight: normal;
+}
+
+.wazzup-home .bottom-nav .nav-item span {
+    font-size: 23px;
+}
+
+.wazzup-home .bottom-nav .nav-item small {
+    font-size: 11px;
+}
+
+.wazzup-home .bottom-nav .nav-item.active {
+    color: #20e878;
+}
+
+.wazzup-home .bottom-nav .nav-item.active span {
+    text-shadow: 0 0 12px #20e878;
+}
+
+/* SMALL MOBILE SCREENS */
+
+@media (max-width: 380px) {
+
+    .top-bar {
+        padding: 20px 16px;
+    }
+
+    .stories-section,
+    .search-section,
+    .wazzup-home .chat-section {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .stories-list {
+        gap: 14px;
+    }
 }
