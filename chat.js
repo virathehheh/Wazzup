@@ -47,7 +47,6 @@ let messageElements = new Map();
 let unsubscribeMessages = null;
 let unsubscribePresence = null;
 let presenceInterval = null;
-
 let recipientPhotoURL = null;
 
 // =====================================
@@ -161,7 +160,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // =====================================
-// LOAD RECIPIENT
+// LOAD RECIPIENT WITH PHOTO
 // =====================================
 
 async function loadRecipient() {
@@ -171,49 +170,75 @@ async function loadRecipient() {
         const userRef = doc(db, "users", recipientId);
         const snap = await getDoc(userRef);
 
-        if (snap.exists()) {
+        if (!snap.exists()) {
+            chatName.textContent = "User not found";
+            return;
+        }
 
-            const data = snap.data();
+        const data = snap.data();
 
-            chatName.textContent =
-                data.name || data.username || "Wazzup User";
+        chatName.textContent =
+            data.name || data.username || "Wazzup User";
 
-            if (chatAvatar) {
+        if (!chatAvatar) return;
+
+        const photoURL =
+            data.photoURL ||
+            data.photoUrl ||
+            data.profilePhoto;
+
+        chatAvatar.replaceChildren();
+
+        if (photoURL) {
+
+            recipientPhotoURL = photoURL;
+
+            const image = document.createElement("img");
+
+            image.src = photoURL;
+            image.alt = "Profile Photo";
+
+            image.style.cssText = `
+                width: 100%;
+                height: 100%;
+                min-width: 100%;
+                min-height: 100%;
+                object-fit: cover;
+                border-radius: 50%;
+                display: block;
+            `;
+
+            image.onerror = () => {
+
+                recipientPhotoURL = null;
 
                 chatAvatar.replaceChildren();
 
-                if (data.photoURL) {
+                chatAvatar.textContent =
+                    (data.name || "U").charAt(0).toUpperCase();
 
-                    recipientPhotoURL = data.photoURL;
+                chatAvatar.onclick = null;
+                chatAvatar.style.cursor = "default";
+            };
 
-                    const image = document.createElement("img");
+            chatAvatar.appendChild(image);
 
-                    image.src = data.photoURL;
-                    image.alt = "Profile Photo";
+            chatAvatar.style.overflow = "hidden";
+            chatAvatar.style.cursor = "pointer";
 
-                    image.style.width = "100%";
-                    image.style.height = "100%";
-                    image.style.objectFit = "cover";
-                    image.style.borderRadius = "50%";
+            chatAvatar.onclick = () => {
+                openBigPhoto(recipientPhotoURL);
+            };
 
-                    chatAvatar.appendChild(image);
-                    chatAvatar.style.cursor = "pointer";
+        } else {
 
-                    chatAvatar.onclick = () => {
-                        openBigPhoto(recipientPhotoURL);
-                    };
+            recipientPhotoURL = null;
 
-                } else {
+            chatAvatar.textContent =
+                (data.name || "U").charAt(0).toUpperCase();
 
-                    recipientPhotoURL = null;
-
-                    chatAvatar.textContent =
-                        (data.name || "U").charAt(0).toUpperCase();
-
-                    chatAvatar.onclick = null;
-                    chatAvatar.style.cursor = "default";
-                }
-            }
+            chatAvatar.onclick = null;
+            chatAvatar.style.cursor = "default";
         }
 
     } catch (error) {
@@ -365,28 +390,22 @@ function formatTime(timestamp) {
     const minutes = Math.floor(seconds / 60);
 
     if (minutes < 60) {
-
         return minutes +
             (minutes === 1 ? " minute ago" : " minutes ago");
-
     }
 
     const hours = Math.floor(minutes / 60);
 
     if (hours < 24) {
-
         return hours +
             (hours === 1 ? " hour ago" : " hours ago");
-
     }
 
     const days = Math.floor(hours / 24);
 
     if (days < 7) {
-
         return days +
             (days === 1 ? " day ago" : " days ago");
-
     }
 
     return time.toLocaleDateString();
@@ -501,7 +520,6 @@ function createMessage(messageId, message) {
     bubble.style.overflowWrap = "anywhere";
     bubble.style.textAlign = "left";
 
-    // MESSAGE TEXT
     const text = document.createElement("p");
 
     text.textContent = message.text || "";
@@ -517,7 +535,6 @@ function createMessage(messageId, message) {
     text.style.lineHeight = "1.4";
     text.style.textAlign = "left";
 
-    // MESSAGE STATUS
     const status = document.createElement("small");
 
     status.className = "message-status";
@@ -535,7 +552,6 @@ function createMessage(messageId, message) {
     bubble.appendChild(text);
     bubble.appendChild(status);
 
-    // MESSAGE POSITION
     if (isSent) {
 
         bubble.style.alignSelf = "flex-end";
