@@ -389,3 +389,23 @@ button {
     opacity: 0.75;
     text-align: right;
 }
+
+/* CLEAR MESSAGE TEXT COLORS */
+
+/* My message text */
+.messages-area .message.sent p {
+    color: #071827 !important;
+    font-weight: bold;
+}
+
+/* Friend message text */
+.messages-area .message.received p {
+    color: #ffffff !important;
+    font-weight: bold;
+}
+
+/* Message time/status */
+.messages-area .message .message-status {
+    color: inherit !important;
+    font-weight: bold;
+}
