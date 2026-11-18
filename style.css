@@ -112,7 +112,22 @@ button {
 }
 
 .chat-item {
+    position: relative;
+    z-index: 10;
     display: flex;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+    text-decoration: none;
+}
+
+.chat-item * {
+    pointer-events: none;
+}
+
+.chat-item {
     align-items: center;
     gap: 15px;
     padding: 15px 5px;
@@ -152,6 +167,10 @@ button {
     border-radius: 50%;
 }
 
+/* =====================================
+   OLD BOTTOM NAVIGATION
+===================================== */
+
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -180,7 +199,10 @@ button {
     font-family: Arial, sans-serif;
     color: white;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .chat-header {
@@ -191,6 +213,12 @@ button {
     padding: 0 15px;
     gap: 12px;
     border-bottom: 1px solid #26382b;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    box-sizing: border-box;
 }
 
 .back-button {
@@ -223,7 +251,12 @@ button {
 }
 
 .messages-area {
-    height: calc(100vh - 155px);
+    position: fixed;
+    top: 75px;
+    bottom: 90px;
+    left: 0;
+    right: 0;
+    height: auto;
     overflow-y: auto;
     padding: 15px;
     box-sizing: border-box;
@@ -238,13 +271,19 @@ button {
 }
 
 .message-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
     height: 80px;
     background: #111a14;
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
     box-sizing: border-box;
+    z-index: 101;
 }
 
 .message-footer input {
@@ -269,71 +308,6 @@ button {
     flex-shrink: 0;
 }
 
-/* FIX USER CLICK */
-
-.chat-item {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    width: 100%;
-    box-sizing: border-box;
-    cursor: pointer;
-    pointer-events: auto;
-    touch-action: manipulation;
-    text-decoration: none;
-}
-
-.chat-item * {
-    pointer-events: none;
-}
-
-/* MOBILE CHAT SCREEN */
-
-.chat-page {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
-    min-height: 0;
-    overflow: hidden;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-.chat-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 75px;
-    z-index: 100;
-    box-sizing: border-box;
-}
-
-.messages-area {
-    position: fixed;
-    top: 75px;
-    bottom: 90px;
-    left: 0;
-    right: 0;
-    height: auto;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-.message-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 80px;
-    z-index: 101;
-    box-sizing: border-box;
-    padding: 10px;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
-}
-
 /* MESSAGE BUBBLES */
 
 .messages-area .message {
@@ -351,8 +325,6 @@ button {
     text-align: left !important;
 }
 
-/* SENT MESSAGE */
-
 .messages-area .message.sent {
     align-self: flex-end !important;
     margin-left: auto !important;
@@ -362,8 +334,6 @@ button {
     border-bottom-right-radius: 5px;
 }
 
-/* RECEIVED MESSAGE */
-
 .messages-area .message.received {
     align-self: flex-start !important;
     margin-right: auto !important;
@@ -372,8 +342,6 @@ button {
     color: #ffffff !important;
     border-bottom-left-radius: 5px;
 }
-
-/* MESSAGE TEXT */
 
 .messages-area .message p {
     margin: 0 !important;
@@ -393,8 +361,6 @@ button {
     color: #ffffff !important;
     font-weight: bold;
 }
-
-/* MESSAGE STATUS */
 
 .messages-area .message .message-status {
     display: block;
@@ -697,6 +663,11 @@ body.wazzup-home {
     color: #98a6b3;
     text-decoration: none;
     font-weight: normal;
+    position: relative;
+    z-index: 1001;
+    pointer-events: auto;
+    cursor: pointer;
+    touch-action: manipulation;
 }
 
 .wazzup-home .bottom-nav .nav-item span {
@@ -713,6 +684,96 @@ body.wazzup-home {
 
 .wazzup-home .bottom-nav .nav-item.active span {
     text-shadow: 0 0 12px #20e878;
+}
+
+/* =====================================
+   PROFILE PAGE
+===================================== */
+
+.profile-section {
+    padding: 25px 20px 110px;
+    text-align: center;
+}
+
+.profile-section > h2:first-child {
+    font-size: 23px;
+    margin-bottom: 25px;
+}
+
+.profile-avatar {
+    width: 105px;
+    height: 105px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #20e878, #087c4b);
+    color: #07150d;
+    font-size: 42px;
+    font-weight: bold;
+    box-shadow: 0 0 25px rgba(32, 232, 120, 0.2);
+}
+
+#profileName {
+    font-size: 23px;
+    margin: 10px 0 5px;
+    color: white;
+}
+
+#profileUsername {
+    color: #20e878;
+    margin-bottom: 25px;
+}
+
+.profile-details {
+    background: #12251b;
+    border: 1px solid #234532;
+    border-radius: 18px;
+    padding: 5px 18px;
+    text-align: left;
+    margin: 20px 0;
+}
+
+.profile-detail {
+    padding: 15px 0;
+    border-bottom: 1px solid #294333;
+}
+
+.profile-detail:last-child {
+    border-bottom: none;
+}
+
+.profile-detail span {
+    display: block;
+    color: #91a99a;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.profile-detail strong {
+    color: white;
+    font-size: 15px;
+    overflow-wrap: anywhere;
+}
+
+.wazzup-home .profile-section button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
+    border-radius: 12px;
+    border: none;
+    background: #20e878;
+    color: #07150d;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.wazzup-home .profile-section #logoutButton {
+    background: #26372e;
+    color: #ff7777;
+    border: 1px solid #604040;
 }
 
 /* SMALL MOBILE SCREENS */
@@ -734,158 +795,3 @@ body.wazzup-home {
         gap: 14px;
     }
 }
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
-
-import {
-    getAuth,
-    onAuthStateChanged,
-    signOut
-} from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
-
-import {
-    getFirestore,
-    doc,
-    getDoc,
-    updateDoc
-} from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
-
-
-const firebaseConfig = {
-    apiKey: "AIzaSyCmeHA37L-kwgt6FnrpqrXHvM7IjvsNVRs",
-    authDomain: "wazzup-0021.firebaseapp.com",
-    projectId: "wazzup-0021",
-    storageBucket: "wazzup-0021.firebasestorage.app",
-    messagingSenderId: "960018982217",
-    appId: "1:960018982217:web:1a196e52060b2140a2e698"
-};
-
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-
-const profileAvatar = document.getElementById("profileAvatar");
-const profileName = document.getElementById("profileName");
-const profileUsername = document.getElementById("profileUsername");
-
-const detailName = document.getElementById("detailName");
-const detailUsername = document.getElementById("detailUsername");
-const detailEmail = document.getElementById("detailEmail");
-const detailBio = document.getElementById("detailBio");
-
-const editButton = document.getElementById("editProfileButton");
-const logoutButton = document.getElementById("logoutButton");
-
-let currentUser = null;
-let currentData = {};
-
-
-async function loadProfile(user) {
-    currentUser = user;
-
-    try {
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (!userSnap.exists()) {
-            alert("Profile data not found!");
-            return;
-        }
-
-        currentData = userSnap.data();
-
-        const name = currentData.name || "Wazzup User";
-        const username = currentData.username || "username";
-        const email = currentData.email || user.email || "Not available";
-        const bio = currentData.bio || "No bio added";
-
-        profileAvatar.textContent = name.charAt(0).toUpperCase();
-        profileName.textContent = name;
-        profileUsername.textContent = "@" + username;
-
-        detailName.textContent = name;
-        detailUsername.textContent = username;
-        detailEmail.textContent = email;
-        detailBio.textContent = bio;
-
-    } catch (error) {
-        console.error(error);
-        alert("Unable to load profile: " + error.message);
-    }
-}
-
-
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        loadProfile(user);
-    } else {
-        window.location.href = "index.html";
-    }
-});
-
-
-editButton.addEventListener("click", async () => {
-
-    if (!currentUser) return;
-
-    const newName = prompt(
-        "Enter your full name:",
-        currentData.name || ""
-    );
-
-    if (newName === null) return;
-
-    const newUsername = prompt(
-        "Enter your username:",
-        currentData.username || ""
-    );
-
-    if (newUsername === null) return;
-
-    const newBio = prompt(
-        "Write your bio:",
-        currentData.bio || ""
-    );
-
-    if (newBio === null) return;
-
-    if (!newName.trim() || !newUsername.trim()) {
-        alert("Name and username cannot be empty!");
-        return;
-    }
-
-    try {
-        const userRef = doc(db, "users", currentUser.uid);
-
-        await updateDoc(userRef, {
-            name: newName.trim(),
-            username: newUsername.trim().replace("@", ""),
-            bio: newBio.trim()
-        });
-
-        alert("Profile updated successfully!");
-
-        await loadProfile(currentUser);
-
-    } catch (error) {
-        console.error(error);
-        alert("Profile update failed: " + error.message);
-    }
-});
-
-
-logoutButton.addEventListener("click", async () => {
-
-    const confirmLogout = confirm("Are you sure you want to logout?");
-
-    if (!confirmLogout) return;
-
-    try {
-        await signOut(auth);
-        window.location.href = "index.html";
-    } catch (error) {
-        alert("Logout failed: " + error.message);
-    }
-});
