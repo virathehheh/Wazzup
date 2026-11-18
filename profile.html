@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#202a35">
+    <title>Wazzup - Profile</title>
+    <link rel="stylesheet" href="style.css?v=5">
+</head>
+
+<body class="wazzup-home">
+
+    <main class="app-container">
+
+        <header class="top-bar">
+            <a href="home.html" class="brand">
+                WAZZ<span>UP</span>
+            </a>
+            <a href="home.html" class="icon-btn"
+               style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
+                ←
+            </a>
+        </header>
+
+        <section class="profile-section">
+
+            <h2>My Profile</h2>
+
+            <div class="profile-avatar" id="profileAvatar">
+                U
+            </div>
+
+            <h2 id="profileName">Loading...</h2>
+            <p id="profileUsername">@username</p>
+
+            <div class="profile-details">
+
+                <div class="profile-detail">
+                    <span>Full Name</span>
+                    <strong id="detailName">Loading...</strong>
+                </div>
+
+                <div class="profile-detail">
+                    <span>Username</span>
+                    <strong id="detailUsername">Loading...</strong>
+                </div>
+
+                <div class="profile-detail">
+                    <span>Email</span>
+                    <strong id="detailEmail">Loading...</strong>
+                </div>
+
+                <div class="profile-detail">
+                    <span>Bio</span>
+                    <strong id="detailBio">No bio added</strong>
+                </div>
+
+            </div>
+
+            <button id="editProfileButton" type="button">
+                Edit Profile
+            </button>
+
+            <button id="logoutButton" type="button">
+                Logout
+            </button>
+
+        </section>
+
+        <nav class="bottom-nav">
+
+            <a href="home.html" class="nav-item">
+                <span>⌂</span>
+                <small>Home</small>
+            </a>
+
+            <a href="home.html" class="nav-item">
+                <span>▤</span>
+                <small>Chats</small>
+            </a>
+
+            <a href="profile.html" class="nav-item active">
+                <span>◎</span>
+                <small>Profile</small>
+            </a>
+
+        </nav>
+
+    </main>
+
+    <script type="module" src="profile.js"></script>
+
+</body>
+</html>
