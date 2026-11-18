@@ -795,3 +795,9 @@ body.wazzup-home {
         gap: 14px;
     }
 }
+
+/* PROFILE PHOTO CLICK FIX */
+.wazzup-home #usersList .chat-item .avatar,
+.wazzup-home #usersList .chat-item .avatar * {
+    pointer-events: auto;
+}
