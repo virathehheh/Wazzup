@@ -37,18 +37,96 @@ const db = getFirestore(app);
 const messagesArea = document.getElementById("messagesArea");
 const messageInput = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
+const chatStatus = document.getElementById("chatStatus");
 
 const params = new URLSearchParams(window.location.search);
 const recipientUid = params.get("uid");
 
 let currentUser = null;
 let chatId = null;
+
 let unsubscribeMessages = null;
+let unsubscribePresence = null;
+
+let presenceInterval = null;
+let statusRefreshInterval = null;
+
+let recipientPresence = null;
+let presenceStarted = false;
 
 const messageElements = new Map();
 const readRequests = new Set();
 
+// ------------------------------
+// ONLINE / OFFLINE PRESENCE
+// ------------------------------
+
+async function updateMyPresence(isOnline) {
+    if (!currentUser) return;
+
+    try {
+        await updateDoc(doc(db, "users", currentUser.uid), {
+            isOnline: isOnline,
+            lastSeen: serverTimestamp()
+        });
+    } catch (error) {
+        console.log("Presence error:", error.message);
+    }
+}
+
+function startMyPresence() {
+    if (presenceStarted) return;
+
+    presenceStarted = true;
+
+    updateMyPresence(
+        document.visibilityState === "visible"
+    );
+
+    presenceInterval = setInterval(() => {
+        if (document.visibilityState === "visible") {
+            updateMyPresence(true);
+        }
+    }, 30000);
+
+    document.addEventListener("visibilitychange", () => {
+        updateMyPresence(
+            document.visibilityState === "visible"
+        );
+    });
+
+    window.addEventListener("pagehide", () => {
+        updateMyPresence(false);
+    });
+}
+
+function showRecipientPresence() {
+    if (!chatStatus) return;
+
+    if (!recipientPresence) {
+        chatStatus.textContent = "Offline";
+        return;
+    }
+
+    const lastSeen = recipientPresence.lastSeen;
+
+    let recent = false;
+
+    if (lastSeen && typeof lastSeen.toDate === "function") {
+        recent =
+            Date.now() - lastSeen.toDate().getTime() < 70000;
+    }
+
+    chatStatus.textContent =
+        recipientPresence.isOnline && recent
+            ? "Online"
+            : "Offline";
+}
+
+// ------------------------------
 // TIME FORMAT
+// ------------------------------
+
 function formatTime(value) {
     if (!value) return "just now";
 
@@ -85,11 +163,15 @@ function formatTime(value) {
         (days === 1 ? " day ago" : " days ago");
 }
 
+// ------------------------------
 // CREATE MESSAGE ELEMENT
+// ------------------------------
+
 function createMessageElement(message, id) {
     const isMine = message.senderId === currentUser.uid;
 
     const bubble = document.createElement("div");
+
     bubble.className = isMine
         ? "message-bubble sent"
         : "message-bubble received";
@@ -113,7 +195,10 @@ function createMessageElement(message, id) {
     return bubble;
 }
 
+// ------------------------------
 // UPDATE MESSAGE
+// ------------------------------
+
 function updateMessageElement(message, id) {
     let elements = messageElements.get(id);
 
@@ -146,7 +231,10 @@ function updateMessageElement(message, id) {
     }
 }
 
+// ------------------------------
 // DISPLAY MESSAGES
+// ------------------------------
+
 function displayMessages(snapshot) {
     const wasNearBottom =
         messagesArea.scrollHeight -
@@ -168,7 +256,6 @@ function displayMessages(snapshot) {
     snapshot.forEach(messageDoc => {
         const id = messageDoc.id;
 
-        // Estimate server timestamps while pending
         const message = messageDoc.data({
             serverTimestamps: "estimate"
         });
@@ -201,7 +288,7 @@ function displayMessages(snapshot) {
         }
     });
 
-    // Remove messages no longer in snapshot
+    // REMOVE DELETED MESSAGES
     for (const [id, elements] of messageElements) {
         if (!currentIds.has(id)) {
             elements.bubble.remove();
@@ -215,7 +302,10 @@ function displayMessages(snapshot) {
     }
 }
 
+// ------------------------------
 // START CHAT LISTENER
+// ------------------------------
+
 function startChat() {
     const messagesRef = collection(
         db,
@@ -240,7 +330,10 @@ function startChat() {
     );
 }
 
+// ------------------------------
 // SEND MESSAGE
+// ------------------------------
+
 sendButton.addEventListener("click", async function () {
     const messageText = messageInput.value.trim();
 
@@ -276,7 +369,10 @@ messageInput.addEventListener("keydown", function (event) {
     }
 });
 
-// LIVE TIME UPDATE
+// ------------------------------
+// LIVE MESSAGE TIME UPDATE
+// ------------------------------
+
 setInterval(() => {
     document.querySelectorAll(".message-status").forEach(status => {
         const sentAt = Number(status.dataset.sentAt);
@@ -299,7 +395,10 @@ setInterval(() => {
     });
 }, 5000);
 
+// ------------------------------
 // LOGIN AND CHAT SETUP
+// ------------------------------
+
 onAuthStateChanged(auth, async user => {
     if (!user) {
         window.location.href = "index.html";
@@ -313,6 +412,28 @@ onAuthStateChanged(auth, async user => {
         window.location.href = "home.html";
         return;
     }
+
+    // START MY PRESENCE
+    startMyPresence();
+
+    // LISTEN TO RECIPIENT PRESENCE
+    if (unsubscribePresence) {
+        unsubscribePresence();
+    }
+
+    unsubscribePresence = onSnapshot(
+        doc(db, "users", recipientUid),
+        snapshot => {
+            recipientPresence = snapshot.exists()
+                ? snapshot.data()
+                : null;
+
+            showRecipientPresence();
+        },
+        error => {
+            console.log("Presence listener error:", error.message);
+        }
+    );
 
     // SAME CHAT ID FOR BOTH USERS
     chatId = [currentUser.uid, recipientUid]
@@ -338,9 +459,6 @@ onAuthStateChanged(auth, async user => {
         document.querySelector(".chat-avatar").textContent =
             (data.name || "U").charAt(0).toUpperCase();
 
-        document.getElementById("chatStatus").textContent =
-            "Wazzup";
-
         const chatRef = doc(db, "chats", chatId);
         const chatDoc = await getDoc(chatRef);
 
@@ -365,3 +483,8 @@ onAuthStateChanged(auth, async user => {
             "Error: " + error.message;
     }
 });
+
+// REFRESH RECIPIENT STATUS
+statusRefreshInterval = setInterval(() => {
+    showRecipientPresence();
+}, 10000);
