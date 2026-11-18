@@ -4,32 +4,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wazzup</title>
+
+    <title>Wazzup – Connect. Chat. Repeat.</title>
+
+    <meta name="description" content="Welcome to Wazzup, a messaging platform to connect and chat with your friends in real time. Connect. Chat. Repeat.">
+
+    <meta name="keywords" content="Wazzup, Wazzup Chat, messaging app, online chat, real time messaging">
+
+    <meta name="author" content="Wazzup">
+
+    <meta name="robots" content="index, follow">
+
+    <link rel="canonical" href="https://virathehheh.github.io/Wazzup/">
+
+    <!-- WEBSITE LOGO / FAVICON -->
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+
+    <!-- GOOGLE / SOCIAL PREVIEW -->
+    <meta property="og:title" content="Wazzup – Connect. Chat. Repeat.">
+    <meta property="og:description" content="Connect with your friends and chat in real time using Wazzup.">
+    <meta property="og:image" content="https://virathehheh.github.io/Wazzup/logo.png">
+    <meta property="og:url" content="https://virathehheh.github.io/Wazzup/">
+    <meta property="og:type" content="website">
+
+    <meta name="theme-color" content="#08120D">
+
     <link rel="stylesheet" href="style.css">
+
+    <!-- WEBSITE INFORMATION -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Wazzup",
+        "alternateName": "Wazzup Chat",
+        "url": "https://virathehheh.github.io/Wazzup/"
+    }
+    </script>
+
 </head>
+
 <body>
 
-  <img src="logo.png" alt="Wazzup Logo" class="logo">
+    <img src="logo.png" alt="Wazzup Logo" class="logo">
+
     <p>Connect. Chat. Repeat.</p>
 
     <div class="login-box">
+
         <h2>Welcome Back!</h2>
 
-        <input type="email" id="loginEmail" placeholder="Enter Email">
+        <input
+            type="email"
+            id="loginEmail"
+            placeholder="Enter Email"
+        >
 
-        <input type="password" id="loginPassword" placeholder="Enter Password">
+        <input
+            type="password"
+            id="loginPassword"
+            placeholder="Enter Password"
+        >
 
         <button id="loginButton">Login</button>
 
-        <p><a href="#" id="forgotPassword">Forgot Password?</a></p>
+        <p>
+            <a href="#" id="forgotPassword">
+                Forgot Password?
+            </a>
+        </p>
 
         <p>New to Wazzup?</p>
 
         <button onclick="window.location.href='signup.html'">
             Create Account
         </button>
+
     </div>
 
     <script type="module" src="script.js"></script>
+
 </body>
 </html>
