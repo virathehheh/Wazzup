@@ -16,11 +16,10 @@ import {
     query,
     orderBy,
     onSnapshot,
-    serverTimestamp,
-    updateDoc
+    updateDoc,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
 
-// FIREBASE CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyCmeHA37L-kwgt6FnrpqrXHvM7IjvsNVRs",
     authDomain: "wazzup-0021.firebaseapp.com",
@@ -37,51 +36,86 @@ const db = getFirestore(app);
 const messagesArea = document.getElementById("messagesArea");
 const messageInput = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
+const chatName = document.getElementById("chatName");
 const chatStatus = document.getElementById("chatStatus");
 
-const params = new URLSearchParams(window.location.search);
-const recipientUid = params.get("uid");
-
 let currentUser = null;
-let chatId = null;
-
+let recipientId = null;
+let recipientPresence = null;
+let messageElements = new Map();
 let unsubscribeMessages = null;
 let unsubscribePresence = null;
-
 let presenceInterval = null;
-let statusRefreshInterval = null;
 
-let recipientPresence = null;
-let presenceStarted = false;
+// RECIPIENT DETAILS
+const params = new URLSearchParams(window.location.search);
+recipientId = params.get("uid");
 
-const messageElements = new Map();
-const readRequests = new Set();
+if (!recipientId) {
+    alert("User not found!");
+}
 
-// ------------------------------
-// ONLINE / OFFLINE PRESENCE
-// ------------------------------
+// AUTH CHECK
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        window.location.href = "index.html";
+        return;
+    }
 
+    currentUser = user;
+
+    if (!recipientId || recipientId === currentUser.uid) {
+        alert("Invalid chat user!");
+        window.location.href = "home.html";
+        return;
+    }
+
+    await loadRecipient();
+    startMyPresence();
+    listenToRecipientPresence();
+    loadMessages();
+});
+
+// LOAD RECIPIENT
+async function loadRecipient() {
+    try {
+        const userRef = doc(db, "users", recipientId);
+        const snap = await getDoc(userRef);
+
+        if (snap.exists()) {
+            const data = snap.data();
+            chatName.textContent =
+                data.name || data.username || "Wazzup User";
+        }
+    } catch (error) {
+        console.error("Recipient error:", error);
+    }
+}
+
+// MY ONLINE / LAST SEEN
 async function updateMyPresence(isOnline) {
     if (!currentUser) return;
 
     try {
-        await updateDoc(doc(db, "users", currentUser.uid), {
-            isOnline: isOnline,
-            lastSeen: serverTimestamp()
-        });
+        await setDoc(
+            doc(db, "users", currentUser.uid),
+            {
+                isOnline: isOnline,
+                lastSeen: serverTimestamp()
+            },
+            { merge: true }
+        );
     } catch (error) {
-        console.log("Presence error:", error.message);
+        console.error("Presence update error:", error);
     }
 }
 
 function startMyPresence() {
-    if (presenceStarted) return;
+    updateMyPresence(true);
 
-    presenceStarted = true;
-
-    updateMyPresence(
-        document.visibilityState === "visible"
-    );
+    if (presenceInterval) {
+        clearInterval(presenceInterval);
+    }
 
     presenceInterval = setInterval(() => {
         if (document.visibilityState === "visible") {
@@ -100,6 +134,27 @@ function startMyPresence() {
     });
 }
 
+// RECIPIENT ONLINE / LAST SEEN
+function listenToRecipientPresence() {
+    const recipientRef = doc(db, "users", recipientId);
+
+    unsubscribePresence = onSnapshot(
+        recipientRef,
+        (snapshot) => {
+            if (snapshot.exists()) {
+                recipientPresence = snapshot.data();
+            } else {
+                recipientPresence = null;
+            }
+
+            showRecipientPresence();
+        },
+        (error) => {
+            console.error("Presence listener error:", error);
+        }
+    );
+}
+
 function showRecipientPresence() {
     if (!chatStatus) return;
 
@@ -109,7 +164,6 @@ function showRecipientPresence() {
     }
 
     const lastSeen = recipientPresence.lastSeen;
-
     let recent = false;
 
     if (lastSeen && typeof lastSeen.toDate === "function") {
@@ -117,67 +171,115 @@ function showRecipientPresence() {
             Date.now() - lastSeen.toDate().getTime() < 70000;
     }
 
-    chatStatus.textContent =
-        recipientPresence.isOnline && recent
-            ? "Online"
-            : "Offline";
+    if (recipientPresence.isOnline && recent) {
+        chatStatus.textContent = "Online";
+    } else if (lastSeen) {
+        chatStatus.textContent =
+            "Last seen " + formatTime(lastSeen);
+    } else {
+        chatStatus.textContent = "Offline";
+    }
 }
 
-// ------------------------------
 // TIME FORMAT
-// ------------------------------
+function formatTime(timestamp) {
+    if (!timestamp || typeof timestamp.toDate !== "function") {
+        return "just now";
+    }
 
-function formatTime(value) {
-    if (!value) return "just now";
-
-    const date = value.toDate
-        ? value.toDate()
-        : new Date(value);
-
-    if (isNaN(date.getTime())) return "just now";
-
-    const seconds = Math.max(
-        0,
-        Math.floor((Date.now() - date.getTime()) / 1000)
+    const time = timestamp.toDate();
+    const seconds = Math.floor(
+        (Date.now() - time.getTime()) / 1000
     );
 
-    if (seconds < 60) return "just now";
+    if (seconds < 60) {
+        return "just now";
+    }
 
     const minutes = Math.floor(seconds / 60);
 
     if (minutes < 60) {
-        return minutes +
-            (minutes === 1 ? " minute ago" : " minutes ago");
+        return minutes + (minutes === 1 ? " minute ago" : " minutes ago");
     }
 
     const hours = Math.floor(minutes / 60);
 
     if (hours < 24) {
-        return hours +
-            (hours === 1 ? " hour ago" : " hours ago");
+        return hours + (hours === 1 ? " hour ago" : " hours ago");
     }
 
     const days = Math.floor(hours / 24);
 
-    return days +
-        (days === 1 ? " day ago" : " days ago");
+    if (days < 7) {
+        return days + (days === 1 ? " day ago" : " days ago");
+    }
+
+    return time.toLocaleDateString();
 }
 
-// ------------------------------
-// CREATE MESSAGE ELEMENT
-// ------------------------------
+// CHAT ID
+function getChatId() {
+    return [currentUser.uid, recipientId]
+        .sort()
+        .join("_");
+}
 
-function createMessageElement(message, id) {
-    const isMine = message.senderId === currentUser.uid;
+// LOAD MESSAGES
+async function loadMessages() {
+    const chatId = getChatId();
+    const chatRef = doc(db, "chats", chatId);
+
+    try {
+        const chatSnap = await getDoc(chatRef);
+
+        if (!chatSnap.exists()) {
+            await setDoc(chatRef, {
+                participants: [currentUser.uid, recipientId],
+                createdAt: serverTimestamp()
+            });
+        }
+
+        const messagesRef = collection(
+            db,
+            "chats",
+            chatId,
+            "messages"
+        );
+
+        const q = query(messagesRef, orderBy("sentAt", "asc"));
+
+        unsubscribeMessages = onSnapshot(q, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                const messageId = change.doc.id;
+                const message = change.doc.data();
+
+                if (change.type === "added") {
+                    createMessage(messageId, message);
+                }
+
+                if (change.type === "modified") {
+                    updateMessage(messageId, message);
+                }
+            });
+
+            markMessagesAsRead(snapshot);
+        });
+    } catch (error) {
+        console.error("Messages error:", error);
+    }
+}
+
+// CREATE MESSAGE ELEMENT
+function createMessage(messageId, message) {
+    if (messageElements.has(messageId)) return;
 
     const bubble = document.createElement("div");
-
-    bubble.className = isMine
-        ? "message-bubble sent"
-        : "message-bubble received";
+    bubble.className =
+        message.senderId === currentUser.uid
+            ? "message sent"
+            : "message received";
 
     const text = document.createElement("p");
-    text.className = "message-text";
     text.textContent = message.text || "";
 
     const status = document.createElement("small");
@@ -186,305 +288,124 @@ function createMessageElement(message, id) {
     bubble.appendChild(text);
     bubble.appendChild(status);
 
-    messageElements.set(id, {
+    messagesArea.appendChild(bubble);
+
+    messageElements.set(messageId, {
         bubble,
-        text,
-        status
+        status,
+        message
     });
 
-    return bubble;
+    updateMessage(messageId, message);
+
+    messagesArea.scrollTop = messagesArea.scrollHeight;
 }
 
-// ------------------------------
-// UPDATE MESSAGE
-// ------------------------------
+// UPDATE MESSAGE STATUS
+function updateMessage(messageId, message) {
+    const item = messageElements.get(messageId);
+    if (!item) return;
 
-function updateMessageElement(message, id) {
-    let elements = messageElements.get(id);
+    item.message = message;
 
-    if (!elements) {
-        createMessageElement(message, id);
-        elements = messageElements.get(id);
-    }
-
-    const sentAt = message.sentAt || null;
-    const readAt = message.readAt || null;
-
-    elements.text.textContent = message.text || "";
-
-    elements.status.dataset.sentAt = sentAt
-        ? sentAt.toMillis()
-        : "";
-
-    elements.status.dataset.readAt = readAt
-        ? readAt.toMillis()
-        : "";
-
-    const isMine = message.senderId === currentUser.uid;
-
-    if (isMine) {
-        elements.status.textContent = readAt
-            ? "Seen " + formatTime(readAt)
-            : "Sent " + formatTime(sentAt);
-    } else {
-        elements.status.textContent = formatTime(sentAt);
-    }
-}
-
-// ------------------------------
-// DISPLAY MESSAGES
-// ------------------------------
-
-function displayMessages(snapshot) {
-    const wasNearBottom =
-        messagesArea.scrollHeight -
-        messagesArea.scrollTop -
-        messagesArea.clientHeight < 100;
-
-    if (snapshot.empty) {
-        messagesArea.innerHTML =
-            '<div class="empty-chat"><h3>Start a Conversation!</h3><p>Say hello to your friend.</p></div>';
-
-        messageElements.clear();
-        return;
-    }
-
-    const currentIds = new Set();
-
-    messagesArea.querySelector(".empty-chat")?.remove();
-
-    snapshot.forEach(messageDoc => {
-        const id = messageDoc.id;
-
-        const message = messageDoc.data({
-            serverTimestamps: "estimate"
-        });
-
-        currentIds.add(id);
-
-        updateMessageElement(message, id);
-
-        const elements = messageElements.get(id);
-
-        if (elements.bubble.parentElement !== messagesArea) {
-            messagesArea.appendChild(elements.bubble);
+    if (message.senderId === currentUser.uid) {
+        if (message.readAt) {
+            item.status.textContent =
+                "Seen " + formatTime(message.readAt);
+        } else {
+            item.status.textContent =
+                "Sent " + formatTime(message.sentAt);
         }
+    } else {
+        item.status.textContent =
+            formatTime(message.sentAt);
+    }
+}
 
-        // MARK RECEIVED MESSAGE AS READ
+// MARK RECEIVED MESSAGES AS READ
+async function markMessagesAsRead(snapshot) {
+    const chatId = getChatId();
+
+    for (const messageDoc of snapshot.docs) {
+        const message = messageDoc.data();
+
         if (
             message.senderId !== currentUser.uid &&
-            !message.readAt &&
-            !readRequests.has(id)
+            !message.readAt
         ) {
-            readRequests.add(id);
-
-            updateDoc(
-                doc(db, "chats", chatId, "messages", id),
-                { readAt: serverTimestamp() }
-            ).catch(error => {
-                console.log("Read receipt error:", error.message);
-                readRequests.delete(id);
-            });
+            try {
+                await updateDoc(
+                    doc(
+                        db,
+                        "chats",
+                        chatId,
+                        "messages",
+                        messageDoc.id
+                    ),
+                    {
+                        readAt: serverTimestamp()
+                    }
+                );
+            } catch (error) {
+                console.error("Read receipt error:", error);
+            }
         }
-    });
-
-    // REMOVE DELETED MESSAGES
-    for (const [id, elements] of messageElements) {
-        if (!currentIds.has(id)) {
-            elements.bubble.remove();
-            messageElements.delete(id);
-            readRequests.delete(id);
-        }
-    }
-
-    if (wasNearBottom) {
-        messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 }
 
-// ------------------------------
-// START CHAT LISTENER
-// ------------------------------
-
-function startChat() {
-    const messagesRef = collection(
-        db,
-        "chats",
-        chatId,
-        "messages"
-    );
-
-    const messagesQuery = query(
-        messagesRef,
-        orderBy("sentAt", "asc")
-    );
-
-    unsubscribeMessages = onSnapshot(
-        messagesQuery,
-        { includeMetadataChanges: true },
-        displayMessages,
-        error => {
-            messagesArea.textContent =
-                "Chat error: " + error.message;
-        }
-    );
-}
-
-// ------------------------------
 // SEND MESSAGE
-// ------------------------------
+sendButton.addEventListener("click", sendMessage);
 
-sendButton.addEventListener("click", async function () {
-    const messageText = messageInput.value.trim();
+messageInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        sendMessage();
+    }
+});
 
-    if (!messageText || !currentUser || !chatId) return;
+async function sendMessage() {
+    const text = messageInput.value.trim();
+
+    if (!text || !currentUser || !recipientId) return;
 
     sendButton.disabled = true;
 
     try {
-        await addDoc(
-            collection(db, "chats", chatId, "messages"),
-            {
-                senderId: currentUser.uid,
-                text: messageText,
-                sentAt: serverTimestamp(),
-                readAt: null
-            }
+        const chatId = getChatId();
+
+        const messagesRef = collection(
+            db,
+            "chats",
+            chatId,
+            "messages"
         );
 
+        await addDoc(messagesRef, {
+            text: text,
+            senderId: currentUser.uid,
+            sentAt: serverTimestamp(),
+            readAt: null
+        });
+
         messageInput.value = "";
-
     } catch (error) {
-        alert("Message not sent: " + error.message);
+        console.error("Send message error:", error);
+        alert("Message send nahi hua. Dobara try karo.");
+    } finally {
+        sendButton.disabled = false;
+    }
+}
+
+// CLEANUP
+window.addEventListener("beforeunload", () => {
+    if (presenceInterval) {
+        clearInterval(presenceInterval);
     }
 
-    sendButton.disabled = false;
-});
-
-// SEND WITH ENTER
-messageInput.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-        event.preventDefault();
-        sendButton.click();
-    }
-});
-
-// ------------------------------
-// LIVE MESSAGE TIME UPDATE
-// ------------------------------
-
-setInterval(() => {
-    document.querySelectorAll(".message-status").forEach(status => {
-        const sentAt = Number(status.dataset.sentAt);
-        const readAt = Number(status.dataset.readAt);
-
-        if (readAt) {
-            status.textContent =
-                "Seen " + formatTime(readAt);
-
-        } else if (sentAt) {
-            const bubble = status.closest(".message-bubble");
-
-            if (bubble?.classList.contains("sent")) {
-                status.textContent =
-                    "Sent " + formatTime(sentAt);
-            } else {
-                status.textContent = formatTime(sentAt);
-            }
-        }
-    });
-}, 5000);
-
-// ------------------------------
-// LOGIN AND CHAT SETUP
-// ------------------------------
-
-onAuthStateChanged(auth, async user => {
-    if (!user) {
-        window.location.href = "index.html";
-        return;
+    if (unsubscribeMessages) {
+        unsubscribeMessages();
     }
 
-    currentUser = user;
-
-    if (!recipientUid || recipientUid === currentUser.uid) {
-        alert("Invalid chat user!");
-        window.location.href = "home.html";
-        return;
-    }
-
-    // START MY PRESENCE
-    startMyPresence();
-
-    // LISTEN TO RECIPIENT PRESENCE
     if (unsubscribePresence) {
         unsubscribePresence();
     }
-
-    unsubscribePresence = onSnapshot(
-        doc(db, "users", recipientUid),
-        snapshot => {
-            recipientPresence = snapshot.exists()
-                ? snapshot.data()
-                : null;
-
-            showRecipientPresence();
-        },
-        error => {
-            console.log("Presence listener error:", error.message);
-        }
-    );
-
-    // SAME CHAT ID FOR BOTH USERS
-    chatId = [currentUser.uid, recipientUid]
-        .sort()
-        .join("_");
-
-    try {
-        const userDoc = await getDoc(
-            doc(db, "users", recipientUid)
-        );
-
-        if (!userDoc.exists()) {
-            alert("User not found!");
-            window.location.href = "home.html";
-            return;
-        }
-
-        const data = userDoc.data();
-
-        document.getElementById("chatName").textContent =
-            data.name || "Wazzup User";
-
-        document.querySelector(".chat-avatar").textContent =
-            (data.name || "U").charAt(0).toUpperCase();
-
-        const chatRef = doc(db, "chats", chatId);
-        const chatDoc = await getDoc(chatRef);
-
-        if (!chatDoc.exists()) {
-            await setDoc(chatRef, {
-                participants: [
-                    currentUser.uid,
-                    recipientUid
-                ],
-                createdAt: serverTimestamp()
-            });
-        }
-
-        if (unsubscribeMessages) {
-            unsubscribeMessages();
-        }
-
-        startChat();
-
-    } catch (error) {
-        messagesArea.textContent =
-            "Error: " + error.message;
-    }
 });
-
-// REFRESH RECIPIENT STATUS
-statusRefreshInterval = setInterval(() => {
-    showRecipientPresence();
-}, 10000);
