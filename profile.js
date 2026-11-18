@@ -14,7 +14,6 @@ import {
     updateDoc
 } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
 
-
 const firebaseConfig = {
     apiKey: "AIzaSyCmeHA37L-kwgt6FnrpqrXHvM7IjvsNVRs",
     authDomain: "wazzup-0021.firebaseapp.com",
@@ -24,15 +23,16 @@ const firebaseConfig = {
     appId: "1:960018982217:web:1a196e52060b2140a2e698"
 };
 
+const CLOUD_NAME = "bfhboa38";
+const UPLOAD_PRESET = "wazzup_profile";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-
-const profileAvatar = document.getElementById("profileAvatar");
 const profileName = document.getElementById("profileName");
 const profileUsername = document.getElementById("profileUsername");
+const profileAvatar = document.getElementById("profileAvatar");
 
 const detailName = document.getElementById("detailName");
 const detailUsername = document.getElementById("detailUsername");
@@ -42,81 +42,209 @@ const detailBio = document.getElementById("detailBio");
 const editButton = document.getElementById("editProfileButton");
 const logoutButton = document.getElementById("logoutButton");
 
+const photoInput = document.getElementById("photoInput");
+const uploadPhotoButton = document.getElementById("uploadPhotoButton");
+
 let currentUser = null;
-let currentData = {};
+let userData = {};
 
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        window.location.href = "index.html";
+        return;
+    }
 
-async function loadProfile(user) {
     currentUser = user;
 
     try {
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
 
-        if (!userSnap.exists()) {
-            alert("Profile data not found!");
-            return;
+        if (userSnap.exists()) {
+            userData = userSnap.data();
         }
 
-        currentData = userSnap.data();
-
-        const name = currentData.name || "Wazzup User";
-        const username = currentData.username || "username";
-        const email = currentData.email || user.email || "Not available";
-        const bio = currentData.bio || "No bio added";
-
-        profileAvatar.textContent = name.charAt(0).toUpperCase();
-        profileName.textContent = name;
-        profileUsername.textContent = "@" + username;
-
-        detailName.textContent = name;
-        detailUsername.textContent = username;
-        detailEmail.textContent = email;
-        detailBio.textContent = bio;
+        showProfile(user);
 
     } catch (error) {
-        console.error(error);
-        alert("Unable to load profile: " + error.message);
-    }
-}
-
-
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        loadProfile(user);
-    } else {
-        window.location.href = "index.html";
+        alert("Profile loading failed: " + error.message);
     }
 });
 
+function showProfile(user) {
+    const name = userData.name || "User";
+    const username = userData.username || "username";
+    const email = userData.email || user.email || "Not available";
+    const bio = userData.bio || "No bio added";
 
+    profileName.textContent = name;
+    profileUsername.textContent = "@" + username;
+
+    detailName.textContent = name;
+    detailUsername.textContent = "@" + username;
+    detailEmail.textContent = email;
+    detailBio.textContent = bio;
+
+    profileAvatar.replaceChildren();
+
+    if (userData.photoURL) {
+        const image = document.createElement("img");
+        image.src = userData.photoURL;
+        image.alt = "Profile Photo";
+
+        image.style.width = "100%";
+        image.style.height = "100%";
+        image.style.objectFit = "cover";
+        image.style.borderRadius = "50%";
+
+        profileAvatar.appendChild(image);
+    } else {
+        profileAvatar.textContent = name.charAt(0).toUpperCase();
+    }
+}
+
+// Remove image metadata by re-encoding through canvas
+function cleanImage(file) {
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        const objectURL = URL.createObjectURL(file);
+
+        image.onload = () => {
+            const canvas = document.createElement("canvas");
+
+            const maxSize = 1200;
+            const scale = Math.min(
+                1,
+                maxSize / Math.max(image.width, image.height)
+            );
+
+            canvas.width = Math.round(image.width * scale);
+            canvas.height = Math.round(image.height * scale);
+
+            const context = canvas.getContext("2d");
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob((blob) => {
+                URL.revokeObjectURL(objectURL);
+
+                if (blob) {
+                    resolve(blob);
+                } else {
+                    reject(new Error("Image processing failed."));
+                }
+            }, "image/jpeg", 0.88);
+        };
+
+        image.onerror = () => {
+            URL.revokeObjectURL(objectURL);
+            reject(new Error("Unable to read this image."));
+        };
+
+        image.src = objectURL;
+    });
+}
+
+// Open gallery
+uploadPhotoButton.addEventListener("click", () => {
+    photoInput.click();
+});
+
+// Upload selected photo
+photoInput.addEventListener("change", async () => {
+    const file = photoInput.files[0];
+
+    if (!file || !currentUser) return;
+
+    if (!file.type.startsWith("image/")) {
+        alert("Please select an image.");
+        photoInput.value = "";
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        alert("Photo must be smaller than 5 MB.");
+        photoInput.value = "";
+        return;
+    }
+
+    uploadPhotoButton.disabled = true;
+    uploadPhotoButton.textContent = "Uploading...";
+
+    try {
+        const cleanedImage = await cleanImage(file);
+
+        const formData = new FormData();
+        formData.append("file", cleanedImage, "profile.jpg");
+        formData.append("upload_preset", UPLOAD_PRESET);
+        formData.append("folder", "wazzup_profiles");
+
+        const response = await fetch(
+            `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.error?.message || "Cloudinary upload failed."
+            );
+        }
+
+        const photoURL = result.secure_url;
+
+        const userRef = doc(db, "users", currentUser.uid);
+
+        await updateDoc(userRef, {
+            photoURL: photoURL
+        });
+
+        userData.photoURL = photoURL;
+        showProfile(currentUser);
+
+        alert("Profile photo uploaded successfully!");
+
+    } catch (error) {
+        console.error(error);
+        alert("Photo upload failed: " + error.message);
+
+    } finally {
+        uploadPhotoButton.disabled = false;
+        uploadPhotoButton.textContent = "Upload Profile Photo";
+        photoInput.value = "";
+    }
+});
+
+// Edit profile
 editButton.addEventListener("click", async () => {
-
     if (!currentUser) return;
 
     const newName = prompt(
         "Enter your full name:",
-        currentData.name || ""
+        userData.name || ""
     );
 
     if (newName === null) return;
 
     const newUsername = prompt(
         "Enter your username:",
-        currentData.username || ""
+        userData.username || ""
     );
 
     if (newUsername === null) return;
 
     const newBio = prompt(
-        "Write your bio:",
-        currentData.bio || ""
+        "Enter your bio:",
+        userData.bio || ""
     );
 
     if (newBio === null) return;
 
     if (!newName.trim() || !newUsername.trim()) {
-        alert("Name and username cannot be empty!");
+        alert("Name and username cannot be empty.");
         return;
     }
 
@@ -125,23 +253,25 @@ editButton.addEventListener("click", async () => {
 
         await updateDoc(userRef, {
             name: newName.trim(),
-            username: newUsername.trim().replace("@", ""),
+            username: newUsername.trim(),
             bio: newBio.trim()
         });
 
+        userData.name = newName.trim();
+        userData.username = newUsername.trim();
+        userData.bio = newBio.trim();
+
+        showProfile(currentUser);
+
         alert("Profile updated successfully!");
 
-        await loadProfile(currentUser);
-
     } catch (error) {
-        console.error(error);
-        alert("Profile update failed: " + error.message);
+        alert("Update failed: " + error.message);
     }
 });
 
-
+// Logout
 logoutButton.addEventListener("click", async () => {
-
     const confirmLogout = confirm("Are you sure you want to logout?");
 
     if (!confirmLogout) return;
