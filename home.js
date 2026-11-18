@@ -152,10 +152,14 @@ function displayUsers(users) {
 
     users.forEach(user => {
 
-        const item = document.createElement("a");
+        const item = document.createElement("div");
 
-        item.className = "chat-item";
-        item.href = "chat.html?uid=" + encodeURIComponent(user.uid);
+item.className = "chat-item";
+
+item.addEventListener("click", () => {
+    window.location.href =
+        "chat.html?uid=" + encodeURIComponent(user.uid);
+});
 
         // AVATAR
         const avatar = createAvatar(user);
