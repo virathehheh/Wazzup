@@ -38,6 +38,7 @@ const messageInput = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
 const chatName = document.getElementById("chatName");
 const chatStatus = document.getElementById("chatStatus");
+const chatAvatar = document.querySelector(".chat-avatar");
 
 let currentUser = null;
 let recipientId = null;
@@ -47,7 +48,85 @@ let unsubscribeMessages = null;
 let unsubscribePresence = null;
 let presenceInterval = null;
 
+let recipientPhotoURL = null;
+
+// =====================================
+// FULL SCREEN PHOTO VIEWER
+// =====================================
+
+const photoViewer = document.createElement("div");
+
+photoViewer.style.cssText = `
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+`;
+
+const bigPhoto = document.createElement("img");
+
+bigPhoto.style.cssText = `
+    max-width: 95%;
+    max-height: 85%;
+    object-fit: contain;
+    border-radius: 10px;
+`;
+
+const closePhoto = document.createElement("button");
+
+closePhoto.textContent = "✕";
+
+closePhoto.style.cssText = `
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: auto;
+    color: white;
+    background: transparent;
+    font-size: 30px;
+    cursor: pointer;
+`;
+
+photoViewer.appendChild(bigPhoto);
+photoViewer.appendChild(closePhoto);
+document.body.appendChild(photoViewer);
+
+function openBigPhoto(url) {
+    if (!url) return;
+
+    bigPhoto.src = url;
+    photoViewer.style.display = "flex";
+    document.body.style.overflow = "hidden";
+}
+
+function closeBigPhoto() {
+    photoViewer.style.display = "none";
+    bigPhoto.src = "";
+    document.body.style.overflow = "";
+}
+
+closePhoto.addEventListener("click", closeBigPhoto);
+
+photoViewer.addEventListener("click", (event) => {
+    if (event.target === photoViewer) {
+        closeBigPhoto();
+    }
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+        closeBigPhoto();
+    }
+});
+
+// =====================================
 // RECIPIENT DETAILS
+// =====================================
+
 const params = new URLSearchParams(window.location.search);
 recipientId = params.get("uid");
 
@@ -55,8 +134,12 @@ if (!recipientId) {
     alert("User not found!");
 }
 
+// =====================================
 // AUTH CHECK
+// =====================================
+
 onAuthStateChanged(auth, async (user) => {
+
     if (!user) {
         window.location.href = "index.html";
         return;
@@ -71,32 +154,85 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     await loadRecipient();
+
     startMyPresence();
     listenToRecipientPresence();
     loadMessages();
 });
 
+// =====================================
 // LOAD RECIPIENT
+// =====================================
+
 async function loadRecipient() {
+
     try {
+
         const userRef = doc(db, "users", recipientId);
         const snap = await getDoc(userRef);
 
         if (snap.exists()) {
+
             const data = snap.data();
+
             chatName.textContent =
                 data.name || data.username || "Wazzup User";
+
+            if (chatAvatar) {
+
+                chatAvatar.replaceChildren();
+
+                if (data.photoURL) {
+
+                    recipientPhotoURL = data.photoURL;
+
+                    const image = document.createElement("img");
+
+                    image.src = data.photoURL;
+                    image.alt = "Profile Photo";
+
+                    image.style.width = "100%";
+                    image.style.height = "100%";
+                    image.style.objectFit = "cover";
+                    image.style.borderRadius = "50%";
+
+                    chatAvatar.appendChild(image);
+                    chatAvatar.style.cursor = "pointer";
+
+                    chatAvatar.onclick = () => {
+                        openBigPhoto(recipientPhotoURL);
+                    };
+
+                } else {
+
+                    recipientPhotoURL = null;
+
+                    chatAvatar.textContent =
+                        (data.name || "U").charAt(0).toUpperCase();
+
+                    chatAvatar.onclick = null;
+                    chatAvatar.style.cursor = "default";
+                }
+            }
         }
+
     } catch (error) {
+
         console.error("Recipient error:", error);
+
     }
 }
 
+// =====================================
 // MY ONLINE / LAST SEEN
+// =====================================
+
 async function updateMyPresence(isOnline) {
+
     if (!currentUser) return;
 
     try {
+
         await setDoc(
             doc(db, "users", currentUser.uid),
             {
@@ -105,12 +241,16 @@ async function updateMyPresence(isOnline) {
             },
             { merge: true }
         );
+
     } catch (error) {
+
         console.error("Presence update error:", error);
+
     }
 }
 
 function startMyPresence() {
+
     updateMyPresence(true);
 
     if (presenceInterval) {
@@ -118,15 +258,19 @@ function startMyPresence() {
     }
 
     presenceInterval = setInterval(() => {
+
         if (document.visibilityState === "visible") {
             updateMyPresence(true);
         }
+
     }, 30000);
 
     document.addEventListener("visibilitychange", () => {
+
         updateMyPresence(
             document.visibilityState === "visible"
         );
+
     });
 
     window.addEventListener("pagehide", () => {
@@ -134,13 +278,19 @@ function startMyPresence() {
     });
 }
 
+// =====================================
 // RECIPIENT ONLINE / LAST SEEN
+// =====================================
+
 function listenToRecipientPresence() {
+
     const recipientRef = doc(db, "users", recipientId);
 
     unsubscribePresence = onSnapshot(
         recipientRef,
+
         (snapshot) => {
+
             if (snapshot.exists()) {
                 recipientPresence = snapshot.data();
             } else {
@@ -148,7 +298,9 @@ function listenToRecipientPresence() {
             }
 
             showRecipientPresence();
+
         },
+
         (error) => {
             console.error("Presence listener error:", error);
         }
@@ -156,6 +308,7 @@ function listenToRecipientPresence() {
 }
 
 function showRecipientPresence() {
+
     if (!chatStatus) return;
 
     if (!recipientPresence) {
@@ -167,22 +320,34 @@ function showRecipientPresence() {
     let recent = false;
 
     if (lastSeen && typeof lastSeen.toDate === "function") {
+
         recent =
             Date.now() - lastSeen.toDate().getTime() < 70000;
+
     }
 
     if (recipientPresence.isOnline && recent) {
+
         chatStatus.textContent = "Online";
+
     } else if (lastSeen) {
+
         chatStatus.textContent =
             "Last seen " + formatTime(lastSeen);
+
     } else {
+
         chatStatus.textContent = "Offline";
+
     }
 }
 
+// =====================================
 // TIME FORMAT
+// =====================================
+
 function formatTime(timestamp) {
+
     if (!timestamp || typeof timestamp.toDate !== "function") {
         return "just now";
     }
@@ -200,47 +365,65 @@ function formatTime(timestamp) {
     const minutes = Math.floor(seconds / 60);
 
     if (minutes < 60) {
+
         return minutes +
             (minutes === 1 ? " minute ago" : " minutes ago");
+
     }
 
     const hours = Math.floor(minutes / 60);
 
     if (hours < 24) {
+
         return hours +
             (hours === 1 ? " hour ago" : " hours ago");
+
     }
 
     const days = Math.floor(hours / 24);
 
     if (days < 7) {
+
         return days +
             (days === 1 ? " day ago" : " days ago");
+
     }
 
     return time.toLocaleDateString();
 }
 
+// =====================================
 // CHAT ID
+// =====================================
+
 function getChatId() {
+
     return [currentUser.uid, recipientId]
         .sort()
         .join("_");
+
 }
 
+// =====================================
 // LOAD MESSAGES
+// =====================================
+
 async function loadMessages() {
+
     const chatId = getChatId();
     const chatRef = doc(db, "chats", chatId);
 
     try {
+
         const chatSnap = await getDoc(chatRef);
 
         if (!chatSnap.exists()) {
+
             await setDoc(chatRef, {
                 participants: [currentUser.uid, recipientId],
                 createdAt: serverTimestamp()
             });
+
         }
 
         const messagesRef = collection(
@@ -256,7 +439,9 @@ async function loadMessages() {
         );
 
         unsubscribeMessages = onSnapshot(q, (snapshot) => {
+
             snapshot.docChanges().forEach((change) => {
+
                 const messageId = change.doc.id;
                 const message = change.doc.data();
 
@@ -267,18 +452,26 @@ async function loadMessages() {
                 if (change.type === "modified") {
                     updateMessage(messageId, message);
                 }
+
             });
 
             markMessagesAsRead(snapshot);
+
         });
 
     } catch (error) {
+
         console.error("Messages error:", error);
+
     }
 }
 
+// =====================================
 // CREATE MESSAGE ELEMENT
+// =====================================
+
 function createMessage(messageId, message) {
+
     if (messageElements.has(messageId)) return;
 
     const isSent = message.senderId === currentUser.uid;
@@ -289,7 +482,6 @@ function createMessage(messageId, message) {
         ? "message sent"
         : "message received";
 
-    // MESSAGE BOX COLOR
     bubble.style.backgroundColor = isSent
         ? "#38bdf8"
         : "#262626";
@@ -345,13 +537,17 @@ function createMessage(messageId, message) {
 
     // MESSAGE POSITION
     if (isSent) {
+
         bubble.style.alignSelf = "flex-end";
         bubble.style.marginLeft = "auto";
         bubble.style.borderBottomRightRadius = "5px";
+
     } else {
+
         bubble.style.alignSelf = "flex-start";
         bubble.style.marginRight = "auto";
         bubble.style.borderBottomLeftRadius = "5px";
+
     }
 
     messagesArea.appendChild(bubble);
@@ -367,8 +563,12 @@ function createMessage(messageId, message) {
     messagesArea.scrollTop = messagesArea.scrollHeight;
 }
 
+// =====================================
 // UPDATE MESSAGE STATUS
+// =====================================
+
 function updateMessage(messageId, message) {
+
     const item = messageElements.get(messageId);
 
     if (!item) return;
@@ -376,31 +576,46 @@ function updateMessage(messageId, message) {
     item.message = message;
 
     if (message.senderId === currentUser.uid) {
+
         if (message.readAt) {
+
             item.status.textContent =
                 "Seen " + formatTime(message.readAt);
+
         } else {
+
             item.status.textContent =
                 "Sent " + formatTime(message.sentAt);
+
         }
+
     } else {
+
         item.status.textContent =
             formatTime(message.sentAt);
+
     }
 }
 
+// =====================================
 // MARK RECEIVED MESSAGES AS READ
+// =====================================
+
 async function markMessagesAsRead(snapshot) {
+
     const chatId = getChatId();
 
     for (const messageDoc of snapshot.docs) {
+
         const message = messageDoc.data();
 
         if (
             message.senderId !== currentUser.uid &&
             !message.readAt
         ) {
+
             try {
+
                 await updateDoc(
                     doc(
                         db,
@@ -413,23 +628,32 @@ async function markMessagesAsRead(snapshot) {
                         readAt: serverTimestamp()
                     }
                 );
+
             } catch (error) {
+
                 console.error("Read receipt error:", error);
+
             }
         }
     }
 }
 
+// =====================================
 // SEND MESSAGE
+// =====================================
+
 sendButton.addEventListener("click", sendMessage);
 
 messageInput.addEventListener("keydown", (event) => {
+
     if (event.key === "Enter") {
         sendMessage();
     }
+
 });
 
 async function sendMessage() {
+
     const text = messageInput.value.trim();
 
     if (!text || !currentUser || !recipientId) return;
@@ -437,6 +661,7 @@ async function sendMessage() {
     sendButton.disabled = true;
 
     try {
+
         const chatId = getChatId();
 
         const messagesRef = collection(
@@ -447,25 +672,35 @@ async function sendMessage() {
         );
 
         await addDoc(messagesRef, {
+
             text: text,
             senderId: currentUser.uid,
             sentAt: serverTimestamp(),
             readAt: null
+
         });
 
         messageInput.value = "";
 
     } catch (error) {
+
         console.error("Send message error:", error);
+
         alert("Message send nahi hua. Dobara try karo.");
 
     } finally {
+
         sendButton.disabled = false;
+
     }
 }
 
+// =====================================
 // CLEANUP
+// =====================================
+
 window.addEventListener("beforeunload", () => {
+
     if (presenceInterval) {
         clearInterval(presenceInterval);
     }
@@ -477,4 +712,5 @@ window.addEventListener("beforeunload", () => {
     if (unsubscribePresence) {
         unsubscribePresence();
     }
+
 });
