@@ -4,42 +4,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#202833">
     <title>Wazzup - Home</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="wazzup-home">
 
-    <header class="home-header">
-        <h1>WAZZ<span>UP</span></h1>
-        <p>Your space. Your people.</p>
-    </header>
+    <main class="app-container">
 
-    <div class="search-box">
-        <input
-            type="text"
-            id="userSearch"
-            placeholder="Search people or username..."
-        >
-    </div>
+        <header class="top-bar">
+            <a href="home.html" class="brand">
+                WAZZ<span>UP</span>
+            </a>
 
-    <section class="welcome">
-        <h2>Welcome to Wazzup!</h2>
-        <p>Connect with people and start chatting.</p>
-    </section>
+            <div class="top-actions">
+                <button class="icon-btn" type="button" aria-label="Menu">
+                    ☰
+                </button>
+                <button class="icon-btn" type="button" aria-label="Search"
+                    onclick="document.getElementById('userSearch').focus()">
+                    ⌕
+                </button>
+            </div>
+        </header>
 
-    <section class="chat-section">
-        <h3>People on Wazzup</h3>
+        <section class="stories-section">
+            <div class="section-heading">
+                <h2>Today's Stories</h2>
+                <span class="coming-soon">NEW</span>
+            </div>
 
-        <div id="usersList">
-            <p>Loading users...</p>
-        </div>
-    </section>
+            <div class="stories-list">
+                <div class="story-item">
+                    <div class="story-avatar my-story">
+                        <span>+</span>
+                    </div>
+                    <p>Your story</p>
+                </div>
 
-    <nav class="bottom-nav">
-        <a href="home.html">Home</a>
-        <a href="#">Chats</a>
-        <a href="#">Profile</a>
-    </nav>
+                <div class="story-item">
+                    <div class="story-avatar story-one">W</div>
+                    <p>Wazzup</p>
+                </div>
+
+                <div class="story-item">
+                    <div class="story-avatar story-two">F</div>
+                    <p>Friends</p>
+                </div>
+
+                <div class="story-item">
+                    <div class="story-avatar story-three">S</div>
+                    <p>Stories</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="search-section">
+            <div class="search-box">
+                <span class="search-icon">⌕</span>
+                <input
+                    type="text"
+                    id="userSearch"
+                    placeholder="Search people or username..."
+                    autocomplete="off"
+                >
+            </div>
+        </section>
+
+        <section class="chat-section">
+            <div class="section-heading">
+                <h2>Messages</h2>
+                <span class="chat-subtitle">People on Wazzup</span>
+            </div>
+
+            <div id="usersList">
+                <p>Loading users...</p>
+            </div>
+        </section>
+
+        <nav class="bottom-nav">
+            <a href="home.html" class="nav-item active">
+                <span>⌂</span>
+                <small>Home</small>
+            </a>
+
+            <a href="#" class="nav-item">
+                <span>▤</span>
+                <small>Chats</small>
+            </a>
+
+            <a href="#" class="nav-item">
+                <span>◎</span>
+                <small>Profile</small>
+            </a>
+        </nav>
+
+    </main>
 
     <script type="module" src="home.js"></script>
 
