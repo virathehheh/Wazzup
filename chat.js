@@ -188,6 +188,7 @@ function formatTime(timestamp) {
     }
 
     const time = timestamp.toDate();
+
     const seconds = Math.floor(
         (Date.now() - time.getTime()) / 1000
     );
@@ -199,19 +200,22 @@ function formatTime(timestamp) {
     const minutes = Math.floor(seconds / 60);
 
     if (minutes < 60) {
-        return minutes + (minutes === 1 ? " minute ago" : " minutes ago");
+        return minutes +
+            (minutes === 1 ? " minute ago" : " minutes ago");
     }
 
     const hours = Math.floor(minutes / 60);
 
     if (hours < 24) {
-        return hours + (hours === 1 ? " hour ago" : " hours ago");
+        return hours +
+            (hours === 1 ? " hour ago" : " hours ago");
     }
 
     const days = Math.floor(hours / 24);
 
     if (days < 7) {
-        return days + (days === 1 ? " day ago" : " days ago");
+        return days +
+            (days === 1 ? " day ago" : " days ago");
     }
 
     return time.toLocaleDateString();
@@ -246,7 +250,10 @@ async function loadMessages() {
             "messages"
         );
 
-        const q = query(messagesRef, orderBy("sentAt", "asc"));
+        const q = query(
+            messagesRef,
+            orderBy("sentAt", "asc")
+        );
 
         unsubscribeMessages = onSnapshot(q, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
@@ -264,6 +271,7 @@ async function loadMessages() {
 
             markMessagesAsRead(snapshot);
         });
+
     } catch (error) {
         console.error("Messages error:", error);
     }
@@ -273,20 +281,78 @@ async function loadMessages() {
 function createMessage(messageId, message) {
     if (messageElements.has(messageId)) return;
 
-    const bubble = document.createElement("div");
-    bubble.className =
-        message.senderId === currentUser.uid
-            ? "message sent"
-            : "message received";
+    const isSent = message.senderId === currentUser.uid;
 
+    const bubble = document.createElement("div");
+
+    bubble.className = isSent
+        ? "message sent"
+        : "message received";
+
+    // MESSAGE BOX COLOR
+    bubble.style.backgroundColor = isSent
+        ? "#38bdf8"
+        : "#262626";
+
+    bubble.style.color = isSent
+        ? "#071827"
+        : "#ffffff";
+
+    bubble.style.display = "flex";
+    bubble.style.flexDirection = "column";
+    bubble.style.width = "fit-content";
+    bubble.style.maxWidth = "75%";
+    bubble.style.padding = "12px 16px";
+    bubble.style.margin = "8px 12px";
+    bubble.style.borderRadius = "20px";
+    bubble.style.boxSizing = "border-box";
+    bubble.style.overflowWrap = "anywhere";
+    bubble.style.textAlign = "left";
+
+    // MESSAGE TEXT
     const text = document.createElement("p");
+
     text.textContent = message.text || "";
 
+    text.style.color = isSent
+        ? "#071827"
+        : "#ffffff";
+
+    text.style.fontWeight = "bold";
+    text.style.margin = "0";
+    text.style.padding = "0";
+    text.style.fontSize = "16px";
+    text.style.lineHeight = "1.4";
+    text.style.textAlign = "left";
+
+    // MESSAGE STATUS
     const status = document.createElement("small");
+
     status.className = "message-status";
+
+    status.style.color = isSent
+        ? "#071827"
+        : "#ffffff";
+
+    status.style.fontSize = "11px";
+    status.style.fontWeight = "bold";
+    status.style.marginTop = "6px";
+    status.style.alignSelf = "flex-end";
+    status.style.opacity = "0.8";
 
     bubble.appendChild(text);
     bubble.appendChild(status);
+
+    // MESSAGE POSITION
+    if (isSent) {
+        bubble.style.alignSelf = "flex-end";
+        bubble.style.marginLeft = "auto";
+        bubble.style.borderBottomRightRadius = "5px";
+    } else {
+        bubble.style.alignSelf = "flex-start";
+        bubble.style.marginRight = "auto";
+        bubble.style.borderBottomLeftRadius = "5px";
+    }
 
     messagesArea.appendChild(bubble);
 
@@ -304,6 +370,7 @@ function createMessage(messageId, message) {
 // UPDATE MESSAGE STATUS
 function updateMessage(messageId, message) {
     const item = messageElements.get(messageId);
+
     if (!item) return;
 
     item.message = message;
@@ -387,9 +454,11 @@ async function sendMessage() {
         });
 
         messageInput.value = "";
+
     } catch (error) {
         console.error("Send message error:", error);
         alert("Message send nahi hua. Dobara try karo.");
+
     } finally {
         sendButton.disabled = false;
     }
