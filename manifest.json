@@ -1,1 +1,25 @@
 
+{
+  "name": "Wazzup",
+  "short_name": "Wazzup",
+  "description": "Connect. Chat. Repeat.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#08120D",
+  "theme_color": "#08120D",
+  "icons": [
+    {
+      "src": "./logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+
