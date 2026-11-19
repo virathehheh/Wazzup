@@ -27,15 +27,29 @@
         </div>
     </main>
 
-    <footer class="message-footer">
-        <input
-            type="text"
-            id="messageInput"
-            placeholder="Type a message..."
-        >
+   <footer class="message-footer">
 
-        <button id="sendButton">Send</button>
-    </footer>
+   <button id="photoButton" type="button">📎</button>
+
+<input
+    type="file"
+    id="photoInput"
+    accept="image/*,video/mp4,video/webm,video/quicktime"
+    multiple
+    hidden
+>
+
+    <button id="voiceButton" type="button">🎙️</button>
+
+    <input
+        type="text"
+        id="messageInput"
+        placeholder="Type a message..."
+    >
+
+    <button id="sendButton" type="button">Send</button>
+
+</footer>
 
     <script type="module" src="chat.js?v=5"></script>
 
