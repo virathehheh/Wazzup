@@ -11,7 +11,13 @@ import {
     getFirestore,
     doc,
     getDoc,
-    updateDoc
+    updateDoc,
+    collection,
+    getDocs,
+    query,
+    where,
+    orderBy,
+    deleteDoc
 } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -45,9 +51,12 @@ const logoutButton = document.getElementById("logoutButton");
 const photoInput = document.getElementById("photoInput");
 const uploadPhotoButton = document.getElementById("uploadPhotoButton");
 
+const myPostsFeed = document.getElementById("myPostsFeed");
+
 let currentUser = null;
 let userData = {};
 
+// AUTH
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         window.location.href = "index.html";
@@ -65,12 +74,14 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         showProfile(user);
+        loadMyPosts();
 
     } catch (error) {
         alert("Profile loading failed: " + error.message);
     }
 });
 
+// SHOW PROFILE
 function showProfile(user) {
     const name = userData.name || "User";
     const username = userData.username || "username";
@@ -103,7 +114,7 @@ function showProfile(user) {
     }
 }
 
-// Remove image metadata by re-encoding through canvas
+// CLEAN IMAGE
 function cleanImage(file) {
     return new Promise((resolve, reject) => {
         const image = new Image();
@@ -144,12 +155,12 @@ function cleanImage(file) {
     });
 }
 
-// Open gallery
+// OPEN GALLERY
 uploadPhotoButton.addEventListener("click", () => {
     photoInput.click();
 });
 
-// Upload selected photo
+// UPLOAD PROFILE PHOTO
 photoInput.addEventListener("change", async () => {
     const file = photoInput.files[0];
 
@@ -196,9 +207,7 @@ photoInput.addEventListener("change", async () => {
 
         const photoURL = result.secure_url;
 
-        const userRef = doc(db, "users", currentUser.uid);
-
-        await updateDoc(userRef, {
+        await updateDoc(doc(db, "users", currentUser.uid), {
             photoURL: photoURL
         });
 
@@ -208,7 +217,6 @@ photoInput.addEventListener("change", async () => {
         alert("Profile photo uploaded successfully!");
 
     } catch (error) {
-        console.error(error);
         alert("Photo upload failed: " + error.message);
 
     } finally {
@@ -218,7 +226,7 @@ photoInput.addEventListener("change", async () => {
     }
 });
 
-// Edit profile
+// EDIT PROFILE
 editButton.addEventListener("click", async () => {
     if (!currentUser) return;
 
@@ -249,9 +257,7 @@ editButton.addEventListener("click", async () => {
     }
 
     try {
-        const userRef = doc(db, "users", currentUser.uid);
-
-        await updateDoc(userRef, {
+        await updateDoc(doc(db, "users", currentUser.uid), {
             name: newName.trim(),
             username: newUsername.trim(),
             bio: newBio.trim()
@@ -270,7 +276,130 @@ editButton.addEventListener("click", async () => {
     }
 });
 
-// Logout
+// LOAD MY POSTS
+async function loadMyPosts() {
+    if (!currentUser) return;
+
+    myPostsFeed.textContent = "Loading your posts...";
+
+    try {
+        const postsQuery = query(
+            collection(db, "posts"),
+            where("ownerId", "==", currentUser.uid),
+            orderBy("createdAt", "desc")
+        );
+
+        const snapshot = await getDocs(postsQuery);
+
+        myPostsFeed.replaceChildren();
+
+        if (snapshot.empty) {
+            myPostsFeed.textContent = "You haven't shared any posts yet.";
+            return;
+        }
+
+        for (const postDoc of snapshot.docs) {
+            const post = postDoc.data();
+            const postId = postDoc.id;
+
+            const card = document.createElement("div");
+            card.className = "post-card";
+
+            // AUTHOR
+            const author = document.createElement("h3");
+            author.textContent = userData.name || "You";
+            card.appendChild(author);
+
+            // MEDIA
+            if (post.mediaUrl) {
+                let media;
+
+                if (post.mediaType === "video") {
+                    media = document.createElement("video");
+                    media.controls = true;
+                    media.playsInline = true;
+                } else {
+                    media = document.createElement("img");
+                    media.alt = "Post image";
+                }
+
+                media.src = post.mediaUrl;
+                media.style.width = "100%";
+                media.style.maxHeight = "400px";
+                media.style.objectFit = "contain";
+                media.style.borderRadius = "12px";
+
+                card.appendChild(media);
+            }
+
+            // CAPTION
+            if (post.caption) {
+                const caption = document.createElement("p");
+                caption.textContent = post.caption;
+                card.appendChild(caption);
+            }
+
+            // LIKE COUNT
+            const likesText = document.createElement("p");
+            likesText.textContent = "Loading likes...";
+
+            card.appendChild(likesText);
+
+            try {
+                const likesSnapshot = await getDocs(
+                    collection(db, "posts", postId, "likes")
+                );
+
+                likesText.textContent =
+                    "❤️ " + likesSnapshot.size + " Likes";
+
+            } catch (error) {
+                likesText.textContent = "❤️ Likes unavailable";
+            }
+
+            // DELETE BUTTON
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.textContent = "Delete Post";
+
+            deleteButton.addEventListener("click", async () => {
+                const confirmed = confirm(
+                    "Are you sure you want to delete this post?"
+                );
+
+                if (!confirmed) return;
+
+                deleteButton.disabled = true;
+                deleteButton.textContent = "Deleting...";
+
+                try {
+                    await deleteDoc(doc(db, "posts", postId));
+
+                    alert("Post deleted successfully!");
+
+                    loadMyPosts();
+
+                } catch (error) {
+                    alert("Delete failed: " + error.message);
+                    deleteButton.disabled = false;
+                    deleteButton.textContent = "Delete Post";
+                }
+            });
+
+            card.appendChild(deleteButton);
+
+            myPostsFeed.appendChild(card);
+        }
+
+    } catch (error) {
+        console.error(error);
+
+        myPostsFeed.textContent =
+            "Unable to load posts: " + error.message;
+    }
+}
+
+// LOGOUT
 logoutButton.addEventListener("click", async () => {
     const confirmLogout = confirm("Are you sure you want to logout?");
 
