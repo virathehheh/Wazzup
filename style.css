@@ -801,3 +801,94 @@ body.wazzup-home {
 .wazzup-home #usersList .chat-item .avatar * {
     pointer-events: auto;
 }
+
+/* =====================================
+   WAZZUP PROFILE - AMOLED DARK THEME
+===================================== */
+
+body.wazzup-home {
+    background: #000000 !important;
+    color: #ffffff;
+}
+
+body.wazzup-home .app-container {
+    background: #000000 !important;
+}
+
+.profile-section,
+.social-section {
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+.profile-section h2,
+.social-section h2,
+#profileName {
+    color: #ffffff !important;
+}
+
+#profileUsername {
+    color: #20e878 !important;
+}
+
+.profile-details {
+    background: #101010 !important;
+    border: 1px solid #252525 !important;
+}
+
+.profile-detail {
+    border-bottom-color: #292929 !important;
+}
+
+.profile-detail span {
+    color: #999999 !important;
+}
+
+.profile-detail strong {
+    color: #ffffff !important;
+}
+
+.profile-avatar {
+    background: #20e878 !important;
+    color: #000000 !important;
+    box-shadow: 0 0 20px rgba(32, 232, 120, 0.15);
+}
+
+#photoInput {
+    background: #101010;
+    color: #ffffff;
+}
+
+.wazzup-home .profile-section button {
+    background: #20e878 !important;
+    color: #000000 !important;
+}
+
+.wazzup-home .profile-section #logoutButton {
+    background: #181818 !important;
+    color: #ff7777 !important;
+    border: 1px solid #383838 !important;
+}
+
+.social-section {
+    padding: 20px;
+}
+
+.social-section #myPostsFeed {
+    background: #080808;
+    color: #ffffff;
+}
+
+.wazzup-home .top-bar {
+    background: #000000;
+}
+
+.wazzup-home .icon-btn {
+    background: #151515;
+    border-color: #292929;
+}
+
+.wazzup-home .bottom-nav {
+    background: #050505 !important;
+    border-top: 1px solid #252525 !important;
+}
