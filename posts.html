@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <title>Wazzup - Posts</title>
+    <link rel="stylesheet" href="style.css?v=5">
+
+    <style>
+        body {
+            background:#000 !important;
+            color:#fff !important;
+        }
+
+        .app-container { background:#000 !important; }
+
+        .post-create-box, .wazzup-post {
+            background:#101010;
+            color:#fff;
+            border:1px solid #292929;
+            border-radius:16px;
+            padding:14px;
+            margin:15px 0;
+        }
+
+        #postCaption {
+            width:100%;
+            min-height:85px;
+            box-sizing:border-box;
+            color:#fff;
+            background:#181818;
+            border:1px solid #333;
+            border-radius:10px;
+            padding:12px;
+            font-size:16px;
+        }
+
+        #postMedia {
+            width:100%;
+            margin:14px 0;
+            color:#fff;
+        }
+
+        button {
+            cursor:pointer;
+        }
+
+        #createPostBtn {
+            width:100%;
+            background:#20d879;
+            color:#000;
+            border:0;
+            border-radius:12px;
+            padding:15px;
+            font-size:17px;
+            font-weight:bold;
+        }
+
+        .wazzup-post button {
+            background:#1b1b1b;
+            color:#fff;
+            border:1px solid #333;
+            border-radius:9px;
+            padding:9px 12px;
+        }
+
+        .wazzup-post .post-author {
+            color:#20d879;
+        }
+
+        .wazzup-post p {
+            overflow-wrap:anywhere;
+        }
+
+        .post-media {
+            width:100%;
+            max-height:450px;
+            object-fit:contain;
+            border-radius:10px;
+            background:#080808;
+        }
+
+        .post-actions {
+            display:flex;
+            gap:9px;
+            flex-wrap:wrap;
+            margin-top:12px;
+        }
+
+        .post-comment {
+            color:#bbb;
+            font-size:14px;
+            margin:8px 0;
+        }
+
+        .bottom-nav {
+            background:#080808 !important;
+            border-top:1px solid #252525;
+        }
+
+        .bottom-nav .nav-item {
+            color:#999 !important;
+        }
+
+        .bottom-nav .nav-item.active {
+            color:#20d879 !important;
+        }
+    </style>
+</head>
+
+<body class="wazzup-home">
+
+<main class="app-container">
+
+    <header class="top-bar">
+        <a href="home.html" class="brand">
+            WAZZ<span>UP</span>
+        </a>
+        <h2 style="color:white;">Posts</h2>
+    </header>
+
+    <section class="social-section">
+
+        <div class="post-create-box">
+
+            <h2>What's on your mind?</h2>
+
+            <textarea id="postCaption"
+                placeholder="Write something..."></textarea>
+
+            <input type="file" id="postMedia"
+                accept="image/*,video/*">
+
+            <button id="createPostBtn" type="button">
+                Share Post
+            </button>
+
+        </div>
+
+        <div id="postsFeed">
+            <p>Loading posts...</p>
+        </div>
+
+    </section>
+
+    <nav class="bottom-nav">
+
+        <a href="home.html" class="nav-item">
+            <span>⌂</span>
+            <small>Home</small>
+        </a>
+
+        <a href="home.html#messages" class="nav-item">
+            <span>▤</span>
+            <small>Chats</small>
+        </a>
+
+        <a href="home.html#stories" class="nav-item">
+            <span>◉</span>
+            <small>Updates</small>
+        </a>
+
+        <a href="posts.html" class="nav-item active">
+            <span>▧</span>
+            <small>Posts</small>
+        </a>
+
+        <a href="profile.html" class="nav-item">
+            <span>◎</span>
+            <small>Profile</small>
+        </a>
+
+    </nav>
+
+</main>
+
+<script type="module" src="posts.js"></script>
+
+</body>
+</html>
