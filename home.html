@@ -3,133 +3,171 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#202833">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#000000">
     <title>Wazzup - Home</title>
-    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="style.css?v=5">
+
+    <style>
+        body.wazzup-home {
+            background: #000 !important;
+            color: #fff !important;
+        }
+
+        .app-container {
+            background: #000 !important;
+        }
+
+        .top-bar {
+            background: #000 !important;
+        }
+
+        .chat-item {
+            background: #0b0b0b !important;
+            color: #fff !important;
+            border-bottom: 1px solid #202020;
+        }
+
+        .chat-info h4 { color: #fff !important; }
+        .chat-info p { color: #999 !important; }
+
+        .search-box {
+            background: #151515 !important;
+            border: 1px solid #292929;
+        }
+
+        .search-box input {
+            color: white !important;
+            background: transparent !important;
+        }
+
+        .bottom-nav {
+            background: #080808 !important;
+            border-top: 1px solid #252525;
+        }
+
+        .bottom-nav .nav-item {
+            color: #999 !important;
+        }
+
+        .bottom-nav .nav-item.active {
+            color: #20d879 !important;
+        }
+
+        .stories-section, .chat-section, .search-section {
+            background: #000 !important;
+        }
+
+        .section-heading h2 {
+            color: #fff !important;
+        }
+
+        .chat-subtitle, .coming-soon {
+            color: #20d879 !important;
+        }
+    </style>
 </head>
+
 <body class="wazzup-home">
 
-    <main class="app-container">
+<main class="app-container">
 
-        <header class="top-bar">
-            <a href="home.html" class="brand">
-                WAZZ<span>UP</span>
-            </a>
+    <header class="top-bar">
+        <a href="home.html" class="brand">
+            WAZZ<span>UP</span>
+        </a>
 
-            <div class="top-actions">
-                <button class="icon-btn" type="button" aria-label="Menu">
-                    ☰
-                </button>
-                <button class="icon-btn" type="button" aria-label="Search"
-                    onclick="document.getElementById('userSearch').focus()">
-                    ⌕
-                </button>
-            </div>
-        </header>
+        <div class="top-actions">
+            <button class="icon-btn" type="button" aria-label="Menu">☰</button>
+            <button class="icon-btn" type="button"
+                aria-label="Search"
+                onclick="document.getElementById('userSearch').focus()">
+                ⌕
+            </button>
+        </div>
+    </header>
 
-        <section class="stories-section">
-            <div class="section-heading">
-                <h2>Today's Stories</h2>
-                <span class="coming-soon">NEW</span>
-            </div>
+    <section class="stories-section" id="stories">
+        <div class="section-heading">
+            <h2>Today's Stories</h2>
+            <span class="coming-soon">NEW</span>
+        </div>
 
-            <div class="stories-list">
-                <div class="story-item">
-                    <div class="story-avatar my-story">
-                        <span>+</span>
-                    </div>
-                    <p>Your story</p>
-                </div>
-
-                <div class="story-item">
-                    <div class="story-avatar story-one">W</div>
-                    <p>Wazzup</p>
-                </div>
-
-                <div class="story-item">
-                    <div class="story-avatar story-two">F</div>
-                    <p>Friends</p>
-                </div>
-
-                <div class="story-item">
-                    <div class="story-avatar story-three">S</div>
-                    <p>Stories</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- SOCIAL POSTS SECTION -->
-        <section class="social-section">
-
-            <div class="section-heading">
-                <h2>What's on your mind?</h2>
+        <div class="stories-list">
+            <div class="story-item">
+                <div class="story-avatar my-story"><span>+</span></div>
+                <p>Your story</p>
             </div>
 
-            <div class="post-create-box">
-
-                <textarea id="postCaption"
-                    placeholder="Write something..."></textarea>
-
-                <input type="file" id="postMedia"
-                    accept="image/*,video/*">
-
-                <button id="createPostBtn" type="button">
-                    Share Post
-                </button>
-
+            <div class="story-item">
+                <div class="story-avatar story-one">W</div>
+                <p>Wazzup</p>
             </div>
 
-            <div id="postsFeed">
-                <p>Loading posts...</p>
+            <div class="story-item">
+                <div class="story-avatar story-two">F</div>
+                <p>Friends</p>
             </div>
 
-        </section>
-        <!-- END SOCIAL POSTS SECTION -->
-
-        <section class="search-section">
-            <div class="search-box">
-                <span class="search-icon">⌕</span>
-                <input
-                    type="text"
-                    id="userSearch"
-                    placeholder="Search people or username..."
-                    autocomplete="off"
-                >
+            <div class="story-item">
+                <div class="story-avatar story-three">S</div>
+                <p>Stories</p>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <section class="chat-section">
-            <div class="section-heading">
-                <h2>Messages</h2>
-                <span class="chat-subtitle">People on Wazzup</span>
-            </div>
+    <section class="search-section">
+        <div class="search-box">
+            <span class="search-icon">⌕</span>
+            <input
+                type="text"
+                id="userSearch"
+                placeholder="Search people or username..."
+                autocomplete="off">
+        </div>
+    </section>
 
-            <div id="usersList">
-                <p>Loading users...</p>
-            </div>
-        </section>
+    <section class="chat-section" id="messages">
+        <div class="section-heading">
+            <h2>Messages</h2>
+            <span class="chat-subtitle">People on Wazzup</span>
+        </div>
 
-        <nav class="bottom-nav">
-            <a href="home.html" class="nav-item active">
-                <span>⌂</span>
-                <small>Home</small>
-            </a>
+        <div id="usersList">
+            <p>Loading users...</p>
+        </div>
+    </section>
 
-            <a href="#" class="nav-item">
-                <span>▤</span>
-                <small>Chats</small>
-            </a>
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item active">
+            <span>⌂</span>
+            <small>Home</small>
+        </a>
 
-            <a href="profile.html" class="nav-item">
-                <span>◎</span>
-                <small>Profile</small>
-            </a>
-        </nav>
+        <a href="home.html#messages" class="nav-item">
+            <span>▤</span>
+            <small>Chats</small>
+        </a>
 
-    </main>
+        <a href="home.html#stories" class="nav-item">
+            <span>◉</span>
+            <small>Updates</small>
+        </a>
 
-    <script type="module" src="home.js"></script>
+        <a href="posts.html" class="nav-item">
+            <span>▧</span>
+            <small>Posts</small>
+        </a>
+
+        <a href="profile.html" class="nav-item">
+            <span>◎</span>
+            <small>Profile</small>
+        </a>
+    </nav>
+
+</main>
+
+<script type="module" src="home.js"></script>
 
 </body>
 </html>
