@@ -958,3 +958,21 @@ body.wazzup-home .app-container {
     font-size: 22px;
     cursor: pointer;
 }
+
+.chat-header .chat-user-info {
+    width: 0;
+    flex: 1 1 0%;
+    min-width: 0;
+}
+
+.chat-header .chat-user-info h3 {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.chat-header .call-buttons {
+    flex: 0 0 auto;
+}
