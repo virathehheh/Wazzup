@@ -1,4 +1,3 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
 
 import {
@@ -18,7 +17,8 @@ import {
     orderBy,
     onSnapshot,
     updateDoc,
-    serverTimestamp
+    serverTimestamp,
+    runTransaction
 } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
 
 // =====================================
@@ -325,7 +325,9 @@ function listenToRecipientPresence() {
 
             showRecipientPresence();
         },
-        error => console.error("Presence listener error:", error)
+        error => {
+            console.error("Presence listener error:", error);
+        }
     );
 }
 
@@ -396,7 +398,7 @@ function getChatId() {
 }
 
 // =====================================
-// LOAD MESSAGES
+// LOAD MESSAGES - RACE CONDITION FIX
 // =====================================
 
 async function loadMessages() {
@@ -404,14 +406,19 @@ async function loadMessages() {
     const chatRef = doc(db, "chats", chatId);
 
     try {
-        const chatSnap = await getDoc(chatRef);
+        await runTransaction(db, async transaction => {
+            const chatSnap = await transaction.get(chatRef);
 
-        if (!chatSnap.exists()) {
-            await setDoc(chatRef, {
-                participants: [currentUser.uid, recipientId],
-                createdAt: serverTimestamp()
-            });
-        }
+            if (!chatSnap.exists()) {
+                transaction.set(chatRef, {
+                    participants: [
+                        currentUser.uid,
+                        recipientId
+                    ],
+                    createdAt: serverTimestamp()
+                });
+            }
+        });
 
         const messagesRef = collection(
             db,
@@ -420,7 +427,18 @@ async function loadMessages() {
             "messages"
         );
 
-        const q = query(messagesRef, orderBy("sentAt", "asc"));
+        const q = query(
+            messagesRef,
+            orderBy("sentAt", "asc")
+        );
+
+        if (unsubscribeMessages) {
+            unsubscribeMessages();
+            unsubscribeMessages = null;
+        }
+
+        messageElements.clear();
+        messagesArea.replaceChildren();
 
         unsubscribeMessages = onSnapshot(
             q,
@@ -440,14 +458,22 @@ async function loadMessages() {
 
                 markMessagesAsRead(snapshot);
             },
-            error => console.error("Message listener error:", error)
+            error => {
+                console.error("Message listener error:", error);
+
+                if (chatStatus) {
+                    chatStatus.textContent =
+                        "Connection problem. Reopen chat.";
+                }
+            }
         );
 
     } catch (error) {
         console.error("Messages error:", error);
 
         alert(
-            "Chat load nahi hua. Internet aur Firestore rules check karo."
+            "Chat load nahi hua: " +
+            (error.message || "Internet ya Firebase Rules check karo.")
         );
     }
 }
@@ -624,6 +650,10 @@ function updateMessage(messageId, message) {
     }
 }
 
+// =====================================
+// MARK MESSAGES AS READ
+// =====================================
+
 async function markMessagesAsRead(snapshot) {
     const chatId = getChatId();
 
@@ -694,7 +724,6 @@ async function sendMessage() {
         sendButton.disabled = false;
     }
 }
-
 // =====================================
 // FILE HELPERS
 // =====================================
@@ -1290,7 +1319,6 @@ incomingCard.append(
 incomingOverlay.appendChild(incomingCard);
 
 document.body.appendChild(incomingOverlay);
-
 // =====================================
 // SHOW CALL SCREEN
 // =====================================
@@ -1436,8 +1464,10 @@ function createPeerConnection() {
 // =====================================
 
 async function getCallMedia(type) {
-    if (!navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia) {
+    if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+    ) {
         throw new Error(
             "Camera/microphone supported nahi hai. HTTPS par app kholo."
         );
@@ -1601,7 +1631,8 @@ async function startOutgoingCall(type) {
             "Calling " + (chatName.textContent || "User") + "..."
         );
 
-        callStatusText.textContent = "Microphone permission maang rahe hain...";
+        callStatusText.textContent =
+            "Microphone permission maang rahe hain...";
 
         peerConnection = createPeerConnection();
 
