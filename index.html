@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
 
-    <!-- MOBILE ZOOM LOCK -->
+    <!-- MOBILE VIEWPORT -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 
     <title>Wazzup – Connect. Chat. Repeat.</title>
@@ -34,56 +34,125 @@
 
     <link rel="stylesheet" href="style.css">
 
-    <!-- LOGIN PAGE ONLY CSS -->
+    <!-- LOGIN PAGE DESIGN -->
     <style>
-        .login-page {
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body.login-page {
+            background-color: #08120D !important;
+            color: white !important;
+            font-family: Arial, sans-serif !important;
+            text-align: center;
+
             min-height: 100vh;
             min-height: 100dvh;
-            box-sizing: border-box;
+
             margin: 0;
             padding: 10px 0;
+
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+
             overflow-x: hidden;
             -webkit-text-size-adjust: 100%;
         }
 
+        /* LOGO */
         .login-page .logo {
             width: 150px;
             max-width: 42vw;
             height: auto;
+            display: block;
             margin: 5px auto;
         }
 
+        /* TAGLINE */
         .login-page > p {
+            color: #AAAAAA !important;
             margin: 4px 0 8px;
         }
 
+        /* LOGIN BOX */
         .login-page .login-box {
+            background-color: #12251B !important;
+            color: white !important;
+
             width: calc(100% - 40px);
             max-width: 350px;
-            box-sizing: border-box;
+
             margin: 8px auto;
-            padding: 15px;
+            padding: 18px;
+
+            border-radius: 15px;
         }
 
+        /* HEADING */
+        .login-page .login-box h2 {
+            color: #20E878 !important;
+            margin-top: 5px;
+        }
+
+        /* INPUT FIELDS */
+        .login-page .login-box input {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            color: #111111 !important;
+            background-color: #FFFFFF !important;
+        }
+
+        /* BUTTONS */
+        .login-page .login-box button {
+            max-width: 100%;
+            cursor: pointer;
+        }
+
+        /* LOGIN BOX TEXT */
+        .login-page .login-box p {
+            color: #AAAAAA !important;
+        }
+
+        /* FORGOT PASSWORD */
+        .login-page .login-box a {
+            color: #20E878 !important;
+        }
+
+        /* CREATOR FOOTER */
         .login-page footer {
+            color: #A8B5AD !important;
+            text-align: center;
+            font-size: 12px;
             margin: 5px auto 0 !important;
             padding: 0 5px 5px;
         }
 
+        .login-page footer strong {
+            color: #20E878 !important;
+        }
+
+        /* SMALL MOBILE SCREENS */
         @media (max-height: 700px) {
+
             .login-page .logo {
                 width: 115px;
+                margin: 2px auto;
             }
 
             .login-page .login-box {
                 padding: 10px 15px;
                 margin: 4px auto;
             }
+
+            .login-page .login-box h2 {
+                margin-top: 3px;
+            }
         }
+
     </style>
 
     <!-- WEBSITE INFORMATION FOR SEARCH ENGINES -->
@@ -146,14 +215,15 @@
     </div>
 
     <!-- CREATOR INFORMATION -->
-    <footer style="text-align: center; color: #a8b5ad; font-size: 12px;">
+    <footer>
         Created by
-        <strong style="color: #20e878;">Pranjal Upadhyay</strong>
+        <strong>Pranjal Upadhyay</strong>
     </footer>
 
     <!-- FIREBASE LOGIN -->
     <script type="module" src="script.js"></script>
 
+    <!-- SERVICE WORKER -->
     <script>
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
