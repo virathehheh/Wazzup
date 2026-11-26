@@ -5,15 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#08120D">
-
     <title>Subhi AI - Wazzup</title>
-
     <link rel="stylesheet" href="style.css?v=6">
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body.subhi-page {
             margin: 0;
@@ -64,9 +60,7 @@
             font-size: 25px;
         }
 
-        .subhi-title {
-            flex: 1;
-        }
+        .subhi-title { flex: 1; }
 
         .subhi-title h2 {
             margin: 0;
@@ -127,6 +121,7 @@
             font-size: 14px;
             line-height: 1.5;
             overflow-wrap: anywhere;
+            white-space: pre-wrap;
         }
 
         .ai-message {
@@ -173,9 +168,7 @@
             font-family: Arial, sans-serif;
         }
 
-        .input-row textarea::placeholder {
-            color: #91A899;
-        }
+        .input-row textarea::placeholder { color: #91A899; }
 
         .send-button {
             width: 42px;
@@ -190,6 +183,7 @@
 
         .send-button:disabled {
             opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .disclaimer {
@@ -206,7 +200,6 @@
 <div class="subhi-app">
 
     <header class="subhi-header">
-
         <a href="home.html" class="back-button">‹</a>
 
         <div class="subhi-avatar">✦</div>
@@ -217,29 +210,22 @@
         </div>
 
         <button class="new-chat" id="newChat">+ New</button>
-
     </header>
 
     <main class="subhi-messages" id="messages">
-
         <div class="welcome" id="welcome">
             <div class="welcome-icon">✦</div>
-
             <h1>Hey! I'm Subhi 👋</h1>
-
             <p>
                 Welcome to my world!<br>
                 Ask me questions, learn something new,
                 or just have a conversation.
             </p>
         </div>
-
     </main>
 
     <footer class="subhi-input-area">
-
         <div class="input-row">
-
             <textarea
                 id="userMessage"
                 rows="1"
@@ -252,23 +238,25 @@
                 aria-label="Send message">
                 ➤
             </button>
-
         </div>
 
         <p class="disclaimer">
             Subhi AI can make mistakes. Verify important information.
         </p>
-
     </footer>
 
 </div>
 
 <script>
+    const API_URL =
+        "https://subhi-ai.upadhyayvirat85-97f.workers.dev";
+
     const messages = document.getElementById("messages");
     const input = document.getElementById("userMessage");
     const sendButton = document.getElementById("sendButton");
-    const welcome = document.getElementById("welcome");
     const newChat = document.getElementById("newChat");
+
+    let isSending = false;
 
     function addMessage(text, type) {
         const message = document.createElement("div");
@@ -276,25 +264,80 @@
         message.textContent = text;
         messages.appendChild(message);
         messages.scrollTop = messages.scrollHeight;
+        return message;
     }
 
-    function sendMessage() {
+    function showWelcome() {
+        messages.innerHTML = `
+            <div class="welcome">
+                <div class="welcome-icon">✦</div>
+                <h1>Hey! I'm Subhi 👋</h1>
+                <p>
+                    Welcome to my world!<br>
+                    Ask me questions, learn something new,
+                    or just have a conversation.
+                </p>
+            </div>
+        `;
+    }
+
+    async function sendMessage() {
         const text = input.value.trim();
 
-        if (!text) return;
+        if (!text || isSending) return;
 
-        if (welcome) {
-            welcome.remove();
-        }
+        isSending = true;
+        sendButton.disabled = true;
+        input.disabled = true;
+
+        const welcome = messages.querySelector(".welcome");
+        if (welcome) welcome.remove();
 
         addMessage(text, "user-message");
-
         input.value = "";
 
-        addMessage(
-            "Hey! 👋 Main Subhi AI hoon. Mera chat interface ready hai! Abhi mera AI brain connect nahi hua hai. Woh hum agle step mein connect karenge. ❤️",
-            "ai-message"
-        );
+        const loading = addMessage("Subhi is thinking... ❤️", "ai-message");
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: text
+                })
+            });
+
+            const data = await response.json();
+            loading.remove();
+
+            if (!response.ok) {
+                throw new Error(data.error || "AI request failed");
+            }
+
+            addMessage(
+                data.reply || "Mujhe jawab nahi mila. Dobara try karo.",
+                "ai-message"
+            );
+
+        } catch (error) {
+            loading.remove();
+
+            console.error("Subhi AI error:", error);
+
+            addMessage(
+                "Sorry dost! Subhi abhi connect nahi ho pa raha. " +
+                (error.message || "Internet ya server check karo."),
+                "ai-message"
+            );
+
+        } finally {
+            isSending = false;
+            sendButton.disabled = false;
+            input.disabled = false;
+            input.focus();
+        }
     }
 
     sendButton.addEventListener("click", sendMessage);
@@ -307,13 +350,9 @@
     });
 
     newChat.addEventListener("click", function() {
-        messages.innerHTML = `
-            <div class="welcome" id="welcome">
-                <div class="welcome-icon">✦</div>
-                <h1>Hey! I'm Subhi 👋</h1>
-                <p>Welcome back! What shall we talk about?</p>
-            </div>
-        `;
+        if (isSending) return;
+        showWelcome();
+        input.value = "";
     });
 </script>
 
