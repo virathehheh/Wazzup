@@ -7,12 +7,12 @@
 
     <title>Wazzup – Connect. Chat. Repeat.</title>
 
-    <meta name="description" content="Welcome to Wazzup, a messaging platform to connect and chat with your friends in real time. Connect. Chat. Repeat.">
+    <meta name="description" content="Wazzup is a messaging platform created by Pranjal Upadhyay to connect and chat with friends in real time.">
 
     <meta name="keywords" content="Wazzup, Wazzup Chat, messaging app, online chat, real time messaging">
 
     <meta name="author" content="Pranjal Upadhyay">
-
+    <meta name="creator" content="Pranjal Upadhyay">
     <meta name="robots" content="index, follow">
 
     <link rel="canonical" href="https://virathehheh.github.io/Wazzup/">
@@ -29,21 +29,29 @@
 
     <!-- GOOGLE / SOCIAL PREVIEW -->
     <meta property="og:title" content="Wazzup – Connect. Chat. Repeat.">
-    <meta property="og:description" content="Connect with your friends and chat in real time using Wazzup.">
+    <meta property="og:description" content="Wazzup is created by Pranjal Upadhyay. Connect with friends and chat in real time.">
     <meta property="og:image" content="https://virathehheh.github.io/Wazzup/logo.png">
     <meta property="og:url" content="https://virathehheh.github.io/Wazzup/">
     <meta property="og:type" content="website">
 
     <link rel="stylesheet" href="style.css">
 
-    <!-- WEBSITE INFORMATION -->
+    <!-- WEBSITE INFORMATION FOR SEARCH ENGINES -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "Wazzup",
         "alternateName": "Wazzup Chat",
-        "url": "https://virathehheh.github.io/Wazzup/"
+        "url": "https://virathehheh.github.io/Wazzup/",
+        "creator": {
+            "@type": "Person",
+            "name": "Pranjal Upadhyay"
+        },
+        "author": {
+            "@type": "Person",
+            "name": "Pranjal Upadhyay"
+        }
     }
     </script>
 
@@ -87,20 +95,27 @@
 
     </div>
 
+    <!-- CREATOR INFORMATION -->
+    <footer style="margin: 22px 0 14px; text-align: center; color: #a8b5ad; font-size: 13px;">
+        Created by <strong style="color: #20e878;">Pranjal Upadhyay</strong>
+    </footer>
+
     <!-- FIREBASE LOGIN -->
     <script type="module" src="script.js"></script>
-<script>
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js")
-            .then(() => {
-                console.log("Wazzup App Ready!");
-            })
-            .catch((error) => {
-                console.log("Service Worker Error:", error);
-            });
-    });
-}
-</script>
+
+    <script>
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("./service-worker.js")
+                .then(() => {
+                    console.log("Wazzup App Ready!");
+                })
+                .catch((error) => {
+                    console.log("Service Worker Error:", error);
+                });
+        });
+    }
+    </script>
+
 </body>
 </html>
